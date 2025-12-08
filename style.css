@@ -1,47 +1,54 @@
-/* =========================================================
-   全体デザイン
-========================================================= */
+/* ========================================
+   コジバド!! 全体UI / 共通デザイン
+======================================== */
 
 body {
   font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
   background: #fff9fe;
   margin: 0;
-  padding: 0;
+  padding: 16px;
+}
+
+/* ====== タイトル ====== */
+h1 {
+  text-align: center;
+  font-size: 42px;
+  font-weight: 900;
+  color: #ff66b3;
+  text-shadow: 2px 2px #ffd6eb;
+  margin: 10px 0 25px 0;
 }
 
 h2 {
-  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
   border-left: 6px solid #ff66b3;
-  padding-left: 8px;
-  font-size: 22px;
+  padding-left: 10px;
   color: #ff66b3;
-  font-weight: 800;
 }
 
-/* =========================================================
-   ナビゲーションバー
-========================================================= */
+h3 {
+  color: #ff66b3;
+  margin-bottom: 10px;
+}
 
+/* ====== ナビゲーション ====== */
 .top-nav {
   display: flex;
-  width: 100%;
-  gap: 6px;
-  background: #ffe6f3;
-  padding: 10px;
-  box-sizing: border-box;
-  border-bottom: 2px solid #ffb3d9;
+  gap: 8px;
+  margin-bottom: 18px;
 }
 
 .top-nav a {
   flex: 1;
+  padding: 12px;
   text-align: center;
   background: #ff99cc;
-  padding: 12px;
+  color: white;
   border-radius: 10px;
   text-decoration: none;
-  color: white;
   font-weight: bold;
-  font-size: 16px;
   box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
 
@@ -49,31 +56,40 @@ h2 {
   background: #ff66b3;
 }
 
-/* =========================================================
-   共通ブロック（カード風）
-========================================================= */
-
-.setting-block {
+/* ========================================
+   ブロック（カード風の囲み）
+======================================== */
+.block, .setting-block, .match-round {
   background: #ffffff;
   padding: 16px;
   border-radius: 14px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   border: 2px solid #ffd3ec;
-  margin: 16px;
+  margin-bottom: 20px;
 }
 
-/* =========================================================
-   フォーム系
-========================================================= */
+/* ========================================
+   テーブル
+======================================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-label {
+th {
+  background: #ffe0f4;
+  padding: 8px;
   font-size: 16px;
-  font-weight: bold;
-  color: #ff66b3;
-  display: block;
-  margin-top: 10px;
 }
 
+td {
+  background: #fff;
+  padding: 8px;
+  border-bottom: 1px solid #ffd3ec;
+}
+
+/* ========================================
+   フォーム系
+======================================== */
 select, input[type="text"] {
   width: 100%;
   padding: 12px;
@@ -81,66 +97,19 @@ select, input[type="text"] {
   border: 2px solid #ffb3d9;
   background: #ffe6f3;
   font-size: 16px;
-  box-sizing: border-box;
-  margin-top: 6px;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  background: #ff99cc;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  margin-top: 12px;
-  cursor: pointer;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-}
-
-button:hover {
-  background: #ff66b3;
-}
-
-/* =========================================================
-   試合カード
-========================================================= */
-
-.match-round {
-  background: #ffffff;
-  padding: 16px;
-  border-radius: 12px;
-  border: 2px solid #ffd3ec;
-  margin: 16px;
-}
-
-.match-round h3 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-size: 20px;
-  color: #ff66b3;
-}
-
-.match-card {
-  background: #fff6fc;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid #ffb3d9;
   margin-bottom: 10px;
 }
 
-/* =========================================================
-   名簿管理・参加者チェック
-========================================================= */
-
+/* ========================================
+   リスト（名簿・参加者など）
+======================================== */
 .list-item {
   background: #ffe6f3;
   padding: 12px;
   border-radius: 12px;
-  margin-bottom: 10px;
   border: 2px solid #ffb3d9;
-  font-size: 18px;
+  font-size: 20px;
+  margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -148,59 +117,61 @@ button:hover {
 
 .list-item label {
   display: flex;
+  gap: 12px;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
 }
 
 .drag {
   font-size: 22px;
-  cursor: grab;
   color: #ff66b3;
+  cursor: grab;
 }
 
-.del-btn {
-  background: #ff6675;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-weight: bold;
+/* ========================================
+   試合カード
+======================================== */
+.match-card {
+  background: #fff6fc;
+  border: 1px solid #ffb3d9;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
 }
 
-.del-btn:hover {
-  background: #ff334d;
-}
-
-/* =========================================================
-   テーブル（ステータス）
-========================================================= */
-
-table {
+/* ========================================
+   ボタン
+======================================== */
+button {
   width: 100%;
-  border-collapse: collapse;
+  padding: 15px;
+  font-size: 18px;
+  border-radius: 12px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
   margin-top: 10px;
+  transition: 0.2s;
 }
 
-th {
-  background: #ffe0f4;
-  padding: 10px;
-  border-bottom: 2px solid #ffd3ec;
-  font-size: 16px;
+button:hover {
+  opacity: 0.85;
 }
 
-td {
-  padding: 10px;
-  background: white;
-  border-bottom: 1px solid #ffd3ec;
-  text-align: center;
-}
+/* カラーバリエーション */
+.btn-pink  { background: #ff99cc; color: white; }
+.btn-red   { background: #ff6675; color: white; }
+.btn-green { background: #8ee38e; color: white; }
 
-/* =========================================================
-   次の試合ボタンのエリア
-========================================================= */
-
+/* ========================================
+   次の試合ボタンを下寄せ
+======================================== */
 #nextRoundContainer {
-  padding: 0 16px 30px;
+  margin-bottom: 40px;
+}
+
+/* スマホ対策（余白調整） */
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
 }
