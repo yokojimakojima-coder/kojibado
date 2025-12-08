@@ -6,94 +6,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ff66b3">
 <link rel="stylesheet" href="style.css">
-
-<style>
-h1 {
-  text-align: center;
-  font-size: 48px;
-  margin: 10px 0;
-  font-weight: 900;
-  color: #ff66b3;
-  text-shadow: 2px 2px #ffd6eb;
-}
-
-.block {
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 18px;
-  border: 2px solid #ffd3ec;
-}
-
-button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  font-size: 18px;
-  background: #ff99cc;
-  border: none;
-  color: #fff;
-  font-weight: bold;
-  border-radius: 10px;
-}
-button:hover {
-  background: #ff66b3;
-}
-
-.match-card {
-  background: #fff6fc;
-  border: 1px solid #ffb3d9;
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 8px;
-}
-
-.top-nav {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-.top-nav a {
-  flex: 1;
-  background: #ff99cc;
-  padding: 10px;
-  color: #fff;
-  text-align: center;
-  border-radius: 10px;
-  text-decoration: none;
-  font-weight: bold;
-}
-.top-nav .active {
-  background: #ff66b3;
-}
-</style>
 </head>
 
 <body>
 
-<h1>コジバド!!</h1>
+<!-- ★タイトル★ -->
+<h1 class="title-main">コジバド<span class="title-bang">!!</span></h1>
 
-<!-- ナビゲーション -->
+<!-- ★ナビゲーション -->
 <div class="top-nav">
   <a href="players.html">名簿管理</a>
   <a href="attendance.html">参加者チェック</a>
   <a class="active" href="index.html">試合作成</a>
 </div>
 
-<!-- 設定 -->
+<!-- ★試合設定 -->
 <div class="block">
   <h2>試合設定</h2>
 
-  <label>AIモード</label>
-  <select id="aiMode">
-    <option value="D">D：全部バランス（おすすめ）</option>
-    <option value="A">A：最強公平型</option>
-    <option value="B">B：ペア重視型</option>
-    <option value="C">C：体力重視型</option>
-    <option value="ML">ML：機械学習ぽいバランス</option>
-  </select>
-
-  <label style="margin-top:10px;">コート数</label>
+  <label>コート数</label>
   <select id="courtsSelect">
     <option value="1">1コート</option>
     <option value="2">2コート</option>
@@ -101,18 +32,18 @@ button:hover {
     <option value="4">4コート</option>
   </select>
 
-  <button id="setupBtn">参加者を読み込み → 最初の20試合作成</button>
+  <button id="setupBtn">参加者を読み込み → 自動で20試合作成</button>
 </div>
 
-<!-- 試合履歴 -->
+<!-- ★試合カード一覧 -->
 <div id="rounds" class="block">
   <h2>試合履歴</h2>
   <p id="noRoundMsg">まだ試合が作成されていません。</p>
 </div>
 
-<button id="addBtn" style="display:none;">試合を追加（1試合）</button>
+<button id="addBtn" class="add-round-btn" style="display:none;">試合を追加（1試合）</button>
 
-<!-- ステータス -->
+<!-- ★プレイヤーステータス -->
 <div id="playerSummary" class="block" style="display:none;">
   <h2>プレイヤーステータス</h2>
   <div id="playerTable"></div>
@@ -123,29 +54,29 @@ button:hover {
 <script>
 let players = [];
 let roundNumber = 1;
-let currentAiMode = "D";
-let joinRoundData = {}; // 途中参加データ
+
+/* 最強公平AI（単一モード） */
+function getAiWeights() {
+  return {
+    restBias: 4.0,      //休憩最優先
+    refBias: 3.5,       //審判
+    gamesBias: 2.2,     //試合数
+    partnerBias: 1.4,   //ペア偏り中間
+    opponentBias: 1.4   //対戦偏り中間
+  };
+}
 
 window.onload = () => {
-  document.getElementById("aiMode").onchange =
-    () => currentAiMode = document.getElementById("aiMode").value;
-
   document.getElementById("setupBtn").onclick = setupAndGenerate20;
   document.getElementById("addBtn").onclick = addOneRound;
 };
 
-/* AI重み（common.js） */
-function getAiWeights() {
-  return getCommonAiWeights(currentAiMode);
-}
-
-/* 最初の20試合を作成 */
+/* 初回20試合作成 */
 function setupAndGenerate20() {
   const names = JSON.parse(localStorage.getItem("activePlayers") || "[]");
-  joinRoundData = JSON.parse(localStorage.getItem("joinRoundData") || "{}");
 
   if (names.length < 4) {
-    alert("参加者は最低4人必要です！");
+    alert("参加者は4人以上必要です！");
     return;
   }
 
@@ -155,18 +86,13 @@ function setupAndGenerate20() {
     games: 0,
     refs: 0,
     rests: 0,
-    partners: new Set(),
-    opponents: new Set(),
-    lastRoundPlayed: 0,
-    lastRefRound: 0,
-    lastRestRound: 0,
-    joinRound: joinRoundData[n] || 1
+    partners: {},
+    opponents: {}
   }));
 
   roundNumber = 1;
 
-  document.getElementById("rounds").innerHTML =
-    "<h2>試合履歴</h2>";
+  document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
   document.getElementById("playerSummary").style.display = "block";
   document.getElementById("addBtn").style.display = "block";
 
@@ -179,32 +105,15 @@ function setupAndGenerate20() {
   }
 }
 
-/* 試合追加（最大40） */
+/* 1試合追加 */
 function addOneRound() {
-  if (roundNumber > 40) {
-    alert("最大40試合までです！");
-    return;
-  }
-
   const courtCount = Number(document.getElementById("courtsSelect").value);
   createNextRound(courtCount);
 }
 
-/* ラウンド作成 */
+/* AIラウンド生成 */
 function createNextRound(courtCount) {
-
-  const availablePlayers = players
-    .map((p, index) => ({ p, index }))
-    .filter(obj => roundNumber >= obj.p.joinRound)
-    .map(obj => obj.index);
-
-  const result = generateRound(
-    players,
-    roundNumber,
-    courtCount,
-    getAiWeights(),
-    availablePlayers
-  );
+  const result = generateRound(players, roundNumber, courtCount, getAiWeights());
 
   if (!result) {
     alert("これ以上公平に作れません！");
@@ -218,14 +127,14 @@ function createNextRound(courtCount) {
   return true;
 }
 
-/* ラウンド表示 */
+/* ★ カードUIで試合表示 ★ */
 function renderRound(rounds, refs, benches) {
   const roundsDiv = document.getElementById("rounds");
   const noMsg = document.getElementById("noRoundMsg");
   if (noMsg) noMsg.remove();
 
   const box = document.createElement("div");
-  box.className = "match-round";
+  box.className = "match-block";
 
   const h = document.createElement("h3");
   h.textContent = "第 " + roundNumber + " 試合";
@@ -236,24 +145,35 @@ function renderRound(rounds, refs, benches) {
     card.className = "match-card";
 
     card.innerHTML = `
-      <p><b>コート${i+1}</b>（審判：${players[refs[i]].name}）</p>
-      <p>Team A：${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}</p>
-      <p>Team B：${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}</p>
+      <div class="card-header">
+        <span class="court-icon">🏸 コート${i+1}</span>
+        <span class="ref-icon">👑 審判：${players[refs[i]].name}</span>
+      </div>
+
+      <div class="team team-a">
+        <div class="team-title">🔵 TEAM A</div>
+        <div class="team-members">${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}</div>
+      </div>
+
+      <div class="team team-b">
+        <div class="team-title">🔴 TEAM B</div>
+        <div class="team-members">${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}</div>
+      </div>
     `;
     box.appendChild(card);
   });
 
   if (benches.length > 0) {
     const rest = document.createElement("p");
-    rest.textContent =
-      "休憩：" + benches.map(i => players[i].name).join(" / ");
+    rest.className = "rest-info";
+    rest.innerHTML = "💺 休憩：" + benches.map(i => players[i].name).join(" / ");
     box.appendChild(rest);
   }
 
   roundsDiv.appendChild(box);
 }
 
-/* ステータス表示 */
+/* ステータス表 */
 function renderPlayerTable() {
   let html = `
     <table>
