@@ -30,8 +30,6 @@ h1 {
   padding: 10px;
   border-radius: 10px;
   margin-bottom: 12px;
-  display: flex;
-  flex-direction: column;
 }
 
 .row-top {
@@ -88,27 +86,25 @@ button:hover {
 </div>
 
 <div class="block">
-  <p style="text-align:center;">今日来ている人にチェックを入れ、<br>途中参加の人は開始ラウンドを設定してください</p>
+  <p style="text-align:center;">
+    今日来ている人にチェックを入れて、<br>
+    途中参加の人は「何試合目から参加か」を設定してね
+  </p>
 </div>
 
-<!-- 名簿リスト -->
 <ul id="activeList" style="list-style:none; padding-left:0;"></ul>
 
-<!-- ボタン -->
 <button onclick="checkAll()">全員 ON</button>
 <button onclick="uncheckAll()">全員 OFF</button>
 <button onclick="saveActiveAndJoin()">参加者を保存 → 試合作成へ</button>
 
 <script src="common.js"></script>
 <script>
-/* 初期表示 */
 window.onload = () => {
   loadPlayersToAttendance_full();
 };
 
-/* -------------------------------
-   名簿と途中参加ラウンドの読み込み
---------------------------------*/
+/* 名簿＋途中参加情報の読み込み */
 function loadPlayersToAttendance_full() {
   const list = document.getElementById("activeList");
   list.innerHTML = "";
@@ -131,12 +127,11 @@ function loadPlayersToAttendance_full() {
           <span class="name">${name}</span>
         </label>
       </div>
-
       <div class="row-bottom">
         <span>参加開始：</span>
-        <input type="number" class="join-input" 
-               data-name="${name}" 
-               value="${joinRound}" min="1" max="40">
+        <input type="number" class="join-input"
+               data-name="${name}"
+               min="1" max="200" value="${joinRound}">
         <span>試合目〜</span>
       </div>
     `;
@@ -145,12 +140,16 @@ function loadPlayersToAttendance_full() {
   });
 }
 
-/* 参加者と joinRoundData をまとめて保存 */
-function saveActiveAndJoin() {
-  const checkedList = document.querySelectorAll(".chk");
-  const active = [];
+function checkAll() {
+  document.querySelectorAll(".chk").forEach(cb => cb.checked = true);
+}
+function uncheckAll() {
+  document.querySelectorAll(".chk").forEach(cb => cb.checked = false);
+}
 
-  checkedList.forEach(cb => {
+function saveActiveAndJoin() {
+  const active = [];
+  document.querySelectorAll(".chk").forEach(cb => {
     if (cb.checked) active.push(cb.dataset.name);
   });
 
@@ -159,16 +158,15 @@ function saveActiveAndJoin() {
     return;
   }
 
-  // 途中参加ラウンド保存
   const joinData = {};
   document.querySelectorAll(".join-input").forEach(inp => {
     const n = inp.dataset.name;
-    const v = Number(inp.value);
-    joinData[n] = Math.max(1, Math.min(40, v)); // 1〜40の範囲に制限
+    const v = Number(inp.value) || 1;
+    joinData[n] = Math.max(1, Math.min(200, v));
   });
 
-  localStorage.setItem("joinRoundData", JSON.stringify(joinData));
   localStorage.setItem("activePlayers", JSON.stringify(active));
+  localStorage.setItem("joinRoundData", JSON.stringify(joinData));
 
   alert("保存しました！試合作成へ移動します。");
   location.href = "index.html";
