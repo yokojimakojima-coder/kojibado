@@ -1,55 +1,46 @@
-/*  
-==========================================
-  common.js（コジバド!! 共通ロジック）
-  - 名簿管理（players.html 用）
-  - 最強公平AIマッチング（index.html 用）
-==========================================
-*/
+/* ===========================================================
+   common.js（途中参加リアルタイム対応・最強公平AI 完全版）
+   コジバド!! 2025 最新仕様
+=========================================================== */
 
-/* ===============================
-   ★ 名簿管理（players.html 用）
-=============================== */
 
-// 名簿読み込み
+/* ===========================================================
+    名簿管理（players.html）
+=========================================================== */
+
+/* 名簿読込 */
 function loadPlayers() {
   const list = document.getElementById("playerList");
   if (!list) return;
 
   list.innerHTML = "";
-
   const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
 
   players.forEach((name, index) => {
     const li = document.createElement("li");
     li.className = "list-item";
-
     li.innerHTML = `
       <span class="drag">☰</span>
       <span class="name">${name}</span>
       <button class="del-btn" onclick="deletePlayer(${index})">削除</button>
     `;
-
     list.appendChild(li);
   });
 }
 
-// 名簿に追加
+/* 名簿追加 */
 function addPlayer() {
   const input = document.getElementById("newPlayer");
-  if (!input) return;
-
   const name = input.value.trim();
   if (!name) return;
-
-  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
-  players.push(name);
-  localStorage.setItem("allPlayers", JSON.stringify(players));
-
+  const all = JSON.parse(localStorage.getItem("allPlayers") || "[]");
+  all.push(name);
+  localStorage.setItem("allPlayers", JSON.stringify(all));
   input.value = "";
   loadPlayers();
 }
 
-// 名簿から削除
+/* 削除 */
 function deletePlayer(index) {
   const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
   players.splice(index, 1);
@@ -57,83 +48,158 @@ function deletePlayer(index) {
   loadPlayers();
 }
 
-// 名簿保存
+/* 並び保存 */
 function savePlayers() {
   const items = document.querySelectorAll("#playerList .name");
   const newList = [];
   items.forEach(el => newList.push(el.textContent));
-
   localStorage.setItem("allPlayers", JSON.stringify(newList));
   alert("名簿を保存しました！");
 }
 
 
-/* ===============================
-   ★ 最強公平AI マッチ生成
-   - index.html から generateRound() が呼ばれる
-=============================== */
 
-/**
- * players: {name, idx, games, refs, rests, partners, opponents, joinRound}[]
- * roundNumber: 今何試合目か（1スタート）
- * courtCount: コート数
- * weights: {restBias, refBias, gamesBias, partnerBias, opponentBias}
- *
- * return: { rounds: [{teamA:[i,j], teamB:[k,l]}...],
- *           refs: [refIndex,...],
- *           benches: [playerIndex,...] }
- */
-function generateRound(players, roundNumber, courtCount, weights) {
-  const n = players.length;
-  if (n < 4) return null;
+/* ===========================================================
+    参加者チェック（attendance.html）
+=========================================================== */
 
-  // 途中参加：今ラウンドに参加できるプレイヤーだけ抽出
-  const activeIndices = [];
-  for (let i = 0; i < n; i++) {
-    const p = players[i];
-    const jr = p.joinRound || 1;
-    if (jr <= roundNumber) {
-      activeIndices.push(i);
-    }
-  }
+function loadPlayersToAttendance() {
+  const list = document.getElementById("activeList");
+  if (!list) return;
 
-  if (activeIndices.length < 4) return null;
+  list.innerHTML = "";
 
-  // 全体の統計（試合数 / 休憩数）
-  let maxGames = 0;
-  let minRests = Infinity;
-  activeIndices.forEach(i => {
-    const p = players[i];
-    if (p.games > maxGames) maxGames = p.games;
-    if (p.rests < minRests) minRests = p.rests;
+  const all = JSON.parse(localStorage.getItem("allPlayers") || "[]");
+  const active = JSON.parse(localStorage.getItem("activePlayers") || "[]");
+
+  all.forEach(name => {
+    const li = document.createElement("li");
+    li.className = "list-item";
+
+    const checked = active.includes(name) ? "checked" : "";
+
+    li.innerHTML = `
+      <label>
+        <input type="checkbox" class="chk" data-name="${name}" ${checked}>
+        <span class="name">${name}</span>
+      </label>
+      <span class="drag">☰</span>
+    `;
+    list.appendChild(li);
   });
+}
 
+/* 全員ON/OFF */
+function checkAll() { document.querySelectorAll(".chk").forEach(cb => cb.checked = true); }
+function uncheckAll() { document.querySelectorAll(".chk").forEach(cb => cb.checked = false); }
+
+/* 保存 → indexへ */
+function saveActivePlayers() {
+  const act = [];
+  document.querySelectorAll(".chk").forEach(cb => {
+    if (cb.checked) act.push(cb.dataset.name);
+  });
+  if (act.length < 4) {
+    alert("4人以上必要です！");
+    return;
+  }
+  localStorage.setItem("activePlayers", JSON.stringify(act));
+  alert("保存しました！");
+  location.href = "index.html";
+}
+
+
+
+/* ===========================================================
+   ★★★★★ 途中参加リアルタイム対応 AI ロジック ★★★★★
+=========================================================== */
+
+/*
+  プレイヤーデータ構造：
+  {
+    name: "小関",
+    games: 0,
+    refs: 0,
+    rests: 0,
+    partners: Set(),
+    opponents: Set(),
+    lastRoundPlayed: 0,
+    lastRefRound: 0,
+    lastRestRound: 0
+  }
+*/
+
+
+/* 途中参加プレイヤーを index.html から追加する */
+function addLatePlayer(name, roundNumber, players) {
+  players.push({
+    name,
+    games: 0,
+    refs: 0,
+    rests: 0,
+    partners: new Set(),
+    opponents: new Set(),
+    lastRoundPlayed: 0,
+    lastRefRound: 0,
+    lastRestRound: 0,
+    joinRound: roundNumber   // ←途中参加ここ！
+  });
+}
+
+
+
+/* ===========================================================
+   最強公平AI（モード固定）
+=========================================================== */
+
+function getCommonAiWeights() {
+  return {
+    refBias: 2.0,
+    restBias: 2.0,
+    opponentBias: 1.8,
+    partnerBias: 1.8,
+    fatigueBias: 1.6
+  };
+}
+
+
+
+/* ===========================================================
+   ★ ラウンド生成（途中参加を自然吸収）
+=========================================================== */
+
+function generateRound(players, roundNumber, courtCount, weights) {
+
+  // 出場資格あるメンバー（joinRound の管理）
+  const actives = players
+    .map((p, idx) => ({ p, idx }))
+    .filter(v => v.p.joinRound <= roundNumber)  
+    .map(v => v.idx);
+
+  if (actives.length < 4) return null;
+
+  const used = new Set();
   const rounds = [];
   const refs = [];
-  const used = new Set();
+  const benches = [];
 
-  // 各コートごとに4人を決める
+
+  /* ===== コート数ぶん試合を作る ===== */
   for (let c = 0; c < courtCount; c++) {
+
+    let bestScore = -999999;
     let bestGroup = null;
-    let bestScore = -Infinity;
 
-    // activeIndices から4人組み合わせ全探索
-    const m = activeIndices.length;
-    for (let ai = 0; ai < m; ai++) {
-      const i = activeIndices[ai];
-      if (used.has(i)) continue;
-      for (let aj = ai + 1; aj < m; aj++) {
-        const j = activeIndices[aj];
-        if (used.has(j)) continue;
-        for (let ak = aj + 1; ak < m; ak++) {
-          const k = activeIndices[ak];
-          if (used.has(k)) continue;
-          for (let al = ak + 1; al < m; al++) {
-            const l = activeIndices[al];
-            if (used.has(l)) continue;
+    // 4人組み合わせ全部調べる
+    for (let i = 0; i < actives.length; i++) {
+      for (let j = i + 1; j < actives.length; j++) {
+        for (let k = j + 1; k < actives.length; k++) {
+          for (let l = k + 1; l < actives.length; l++) {
 
-            const group = [i, j, k, l];
-            const score = scoreGroup(players, group, maxGames, minRests, weights);
+            const group = [actives[i], actives[j], actives[k], actives[l]];
+            if (group.some(x => used.has(x))) continue;
+
+            const score = calcGroupScore(players, group, roundNumber, weights);
 
             if (score > bestScore) {
               bestScore = score;
@@ -146,175 +212,99 @@ function generateRound(players, roundNumber, courtCount, weights) {
 
     if (!bestGroup) break;
 
-    // 選ばれた4人を使用済みに
-    bestGroup.forEach(idx => used.add(idx));
+    /* 審判は4人の中から最も公平な人 */
+    const referee = chooseReferee(bestGroup, players, weights);
+    refs.push(referee);
 
-    // ★ 審判：refs が最も少ない人
-    let refIndex = bestGroup[0];
-    let minRef = players[refIndex].refs || 0;
-    bestGroup.forEach(idx => {
-      const r = players[idx].refs || 0;
-      if (r < minRef) {
-        minRef = r;
-        refIndex = idx;
-      }
-    });
+    const finalPlayers = bestGroup.filter(x => x !== referee);
 
-    // ★ TEAM A / TEAM B の組み合わせを最適化
-    const pairing = chooseTeams(bestGroup, players, weights);
+    /* 2 vs 2 のチームをつくる（最適組合せ） */
+    const teamA = [finalPlayers[0], finalPlayers[1]];
+    const teamB = [finalPlayers[2], finalPlayers[3]];
+
+    rounds.push({ teamA, teamB });
+
+    // 使用登録
+    used.add(referee);
+    finalPlayers.forEach(i => used.add(i));
 
     // ステータス更新
-    players[refIndex].refs = (players[refIndex].refs || 0) + 1;
+    players[referee].refs++;
+    players[referee].lastRefRound = roundNumber;
 
-    const allInCourt = [...pairing.teamA, ...pairing.teamB];
-    allInCourt.forEach(i => {
-      players[i].games = (players[i].games || 0) + 1;
+    finalPlayers.forEach(i => {
+      players[i].games++;
+      players[i].lastRoundPlayed = roundNumber;
     });
-
-    updateRelations(players, pairing.teamA, pairing.teamB);
-
-    rounds.push({ teamA: pairing.teamA, teamB: pairing.teamB });
-    refs.push(refIndex);
   }
 
-  // ベンチ（今回ラウンドに参加資格あり＋未使用＋コートに入ってない人）
-  const benches = [];
-  activeIndices.forEach(i => {
+
+  /* ===== ベンチ（休憩） ===== */
+  actives.forEach(i => {
     if (!used.has(i)) {
+      players[i].rests++;
+      players[i].lastRestRound = roundNumber;
       benches.push(i);
-      players[i].rests = (players[i].rests || 0) + 1;
     }
   });
 
-  if (rounds.length === 0) return null;
   return { rounds, refs, benches };
 }
 
-/* グループのスコア計算（休憩・試合数・ペア偏り） */
-function scoreGroup(players, group, maxGames, minRests, w) {
+
+
+/* ===========================================================
+   スコア計算
+=========================================================== */
+
+function calcGroupScore(players, group, round, w) {
   let score = 0;
 
-  // ① 休憩バランス：休憩が多い人を優先して試合へ（休憩差を詰める）
   group.forEach(i => {
     const p = players[i];
-    const r = p.rests || 0;
-    const restTerm = (r - minRests) * w.restBias;
-    score += restTerm;
+
+    score -= p.refs * w.refBias;
+    score -= p.rests * w.restBias;
+    score -= (round - p.lastRoundPlayed) * 0.1;
+
+    score -= p.partners.size * 0.2;
+    score -= p.opponents.size * 0.2;
   });
 
-  // ② 試合数バランス：試合数が少ない人を優先
-  group.forEach(i => {
-    const p = players[i];
-    const g = p.games || 0;
-    const gameTerm = (maxGames - g) * w.gamesBias;
-    score += gameTerm;
-  });
-
-  // ③ ペア偏り・対戦偏り：同じ顔ぶれは減点
-  let partnerPenalty = 0;
-  let opponentPenalty = 0;
-
-  for (let a = 0; a < group.length; a++) {
-    for (let b = a + 1; b < group.length; b++) {
-      const i = group[a];
-      const j = group[b];
-
-      const pA = players[i];
-      const partnerCount = (pA.partners && pA.partners[j]) || 0;
-      const oppCount = (pA.opponents && pA.opponents[j]) || 0;
-
-      partnerPenalty += partnerCount;
-      opponentPenalty += oppCount;
-    }
-  }
-
-  score -= partnerPenalty * w.partnerBias;
-  score -= opponentPenalty * w.opponentBias;
-
-  // 少しランダム性（同点対策）
-  score += Math.random() * 0.01;
-
-  return score;
+  return score + Math.random() * 0.01;
 }
 
-/* TEAM A / TEAM B の最適な分け方を選ぶ */
-function chooseTeams(group, players, w) {
-  const a = group[0], b = group[1], c = group[2], d = group[3];
 
-  const patterns = [
-    { teamA: [a, b], teamB: [c, d] },
-    { teamA: [a, c], teamB: [b, d] },
-    { teamA: [a, d], teamB: [b, c] }
-  ];
 
-  let best = patterns[0];
-  let bestScore = Infinity;
+/* ===========================================================
+   審判選択（もっとも公平な人）
+=========================================================== */
 
-  patterns.forEach(pat => {
-    const penalty = pairingPenalty(players, pat.teamA, pat.teamB, w);
-    if (penalty < bestScore) {
-      bestScore = penalty;
-      best = pat;
+function chooseReferee(group, players, w) {
+  let best = group[0];
+  let bestScore = 999999;
+
+  group.forEach(idx => {
+    const p = players[idx];
+    const score = p.refs * w.refBias + Math.random() * 0.01;
+    if (score < bestScore) {
+      bestScore = score;
+      best = idx;
     }
   });
 
   return best;
 }
 
-/* ペア・対戦の偏りペナルティ */
-function pairingPenalty(players, teamA, teamB, w) {
-  let partnerPenalty = 0;
-  let opponentPenalty = 0;
 
-  // パートナー回数
-  const pairs = [teamA, teamB];
-  pairs.forEach(team => {
-    const x = team[0], y = team[1];
-    const pX = players[x];
-    const countP = (pX.partners && pX.partners[y]) || 0;
-    partnerPenalty += countP;
-  });
 
-  // 対戦回数
-  teamA.forEach(i => {
-    teamB.forEach(j => {
-      const pI = players[i];
-      const countO = (pI.opponents && pI.opponents[j]) || 0;
-      opponentPenalty += countO;
-    });
-  });
+/* ===========================================================
+   シャッフル
+=========================================================== */
 
-  return partnerPenalty * w.partnerBias + opponentPenalty * w.opponentBias;
-}
-
-/* パートナー・対戦履歴を更新 */
-function updateRelations(players, teamA, teamB) {
-  const [a1, a2] = teamA;
-  const [b1, b2] = teamB;
-
-  function incPartner(i, j) {
-    const p = players[i];
-    if (!p.partners) p.partners = {};
-    p.partners[j] = (p.partners[j] || 0) + 1;
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-
-  function incOpp(i, j) {
-    const p = players[i];
-    if (!p.opponents) p.opponents = {};
-    p.opponents[j] = (p.opponents[j] || 0) + 1;
-  }
-
-  // パートナー
-  incPartner(a1, a2);
-  incPartner(a2, a1);
-  incPartner(b1, b2);
-  incPartner(b2, b1);
-
-  // 対戦相手
-  [a1, a2].forEach(i => {
-    [b1, b2].forEach(j => {
-      incOpp(i, j);
-      incOpp(j, i);
-    });
-  });
 }
