@@ -7,20 +7,6 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-body {
-  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
-  background: #fff9fe;
-  padding: 20px;
-}
-
-h2 {
-  text-align: center;
-  font-size: 32px;
-  color: #ff66b3;
-  margin-bottom: 20px;
-}
-
-/* リスト行 */
 .list-item {
   background: #ffe6f3;
   padding: 12px;
@@ -32,66 +18,66 @@ h2 {
   justify-content: space-between;
   align-items: center;
 }
-
 .list-item label {
   display: flex;
   gap: 12px;
   font-size: 20px;
   cursor: pointer;
 }
-
 .drag {
   font-size: 22px;
   cursor: grab;
   color: #ff66b3;
 }
-
-/* ボタン */
-button {
-  width: 100%;
-  padding: 15px;
-  font-size: 20px;
-  border-radius: 15px;
-  border: none;
-  font-weight: bold;
-  margin-top: 10px;
-  cursor: pointer;
-}
-.green { background: #8ee38e; color: white; }
-.red   { background: #ff6675; color: white; }
-.pink  { background: #ff99cc; color: white; }
 </style>
 </head>
 
 <body>
 
-<h2>参加者チェック</h2>
+<h1>参加者チェック</h1>
 
-<!-- 名簿へ戻る -->
-<button class="pink" onclick="location.href='players.html'">
-  名前管理へ戻る
-</button>
+<div class="top-nav">
+  <a href="players.html">名簿管理</a>
+  <a class="active" href="attendance.html">参加者チェック</a>
+  <a href="index.html">試合作成</a>
+</div>
 
-<p style="text-align:center; margin-top:10px;">
+<p style="text-align:center; margin:10px 0 20px;">
   今日来ている人にチェックを入れてください
 </p>
 
-<!-- 名簿読み込み領域 -->
-<ul id="activeList" style="padding-left:0; list-style:none;"></ul>
+<div class="block">
+  <ul id="activeList" style="list-style:none; padding-left:0;"></ul>
+</div>
 
-<!-- ボタン群 -->
-<button class="green" onclick="checkAll()">全員 ON</button>
-<button class="red"   onclick="uncheckAll()">全員 OFF</button>
+<button class="btn-green" onclick="checkAll()">全員 ON</button>
+<button class="btn-red" onclick="uncheckAll()">全員 OFF</button>
 
-<button class="green" onclick="saveActivePlayers()">参加者を保存 → 試合作成へ</button>
+<button class="btn-pink" onclick="saveActivePlayers()">参加者を保存 → 試合作成へ</button>
 
 <script src="common.js"></script>
 
 <script>
-/* 初期読み込み */
+/* ===============================
+   初期処理
+=============================== */
 window.onload = () => {
   loadPlayersToAttendance();
 };
+
+/* ===============================
+   全員 ON
+=============================== */
+function checkAll() {
+  document.querySelectorAll(".chk").forEach(cb => cb.checked = true);
+}
+
+/* ===============================
+   全員 OFF
+=============================== */
+function uncheckAll() {
+  document.querySelectorAll(".chk").forEach(cb => cb.checked = false);
+}
 </script>
 
 </body>
