@@ -1,13 +1,11 @@
 {
   "name": "コジバド!!",
   "short_name": "コジバド!!",
-  "description": "バドミントンの公平な組み合わせをAIで自動生成するアプリ",
   "start_url": "index.html",
-  "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#fff9fe",
+  "background_color": "#ffffff",
   "theme_color": "#ff66b3",
+  "description": "バドミントンダブルスの公平な自動組み合わせアプリ - コジバド!!",
   "icons": [
     {
       "src": "icon-192.png",
@@ -18,12 +16,6 @@
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
-    },
-    {
-      "src": "icon-1024.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "any"
     }
   ]
 }
