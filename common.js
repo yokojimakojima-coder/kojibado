@@ -1,3 +1,22 @@
+function loadPlayers() {
+  const list = document.getElementById("playerList");
+  list.innerHTML = "";
+
+  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
+
+  players.forEach((name, index) => {
+    const li = document.createElement("li");
+    li.className = "list-item";
+
+    li.innerHTML = `
+      <span class="drag">☰</span>
+      <span class="name">${name}</span>
+      <button class="del-btn" onclick="deletePlayer(${index})">削除</button>
+    `;
+
+    list.appendChild(li);
+  });
+}
 function generateRound(players, roundNumber, courtCount, weights, availablePlayers) {
 
   // 試合に出られるメンバーだけに絞る
@@ -109,3 +128,4 @@ function generateRound(players, roundNumber, courtCount, weights, availablePlaye
 
   return { rounds, refs, benches: restList };
 }
+
