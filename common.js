@@ -1,5 +1,5 @@
 /* ======================================================
-   参加データ取得
+   プレイヤーデータ取得
 ====================================================== */
 
 function getAllPlayers() {
@@ -19,40 +19,40 @@ function saveSchedule(s) {
 }
 
 /* ======================================================
-   ラウンド参加可能か？
+   プレイヤーデータの初期化（partners, opponents）
 ====================================================== */
 
-function isAvailableAtRound(name, roundNumber, schedule) {
-  const segs = schedule[name] || [];
-  return segs.some(seg => seg.from <= roundNumber && roundNumber <= seg.to);
-}
-
-function getAvailablePlayerIndexes(players, roundNumber, schedule) {
-  const arr = [];
-  players.forEach((p, i) => {
-    if (isAvailableAtRound(p.name, roundNumber, schedule)) {
-      arr.push(i);
-    }
-  });
-  return arr;
+function initPlayerData(players) {
+  return players.map((p, i) => ({
+    name: p,
+    idx: i,
+    games: 0,
+    refs: 0,
+    rests: 0,
+    partners: new Set(),   // 必ず初期化
+    opponents: new Set(),  // 必ず初期化
+    lastRoundPlayed: 0,
+    lastRefRound: 0,
+    lastRestRound: 0
+  }));
 }
 
 /* ======================================================
-   AIパラメータ（最強公平）
+   最強公平モードのパラメータ
 ====================================================== */
 
 function getAiWeights() {
   return {
-    partnerBias: 15,   // 同じペアになるのを強く回避
-    opponentBias: 12,  // 同じ相手との対戦を強く回避
-    fatigueBias: 1.2,  // 最近出てない人優遇
-    refBias: 2.0,      // 審判偏り回避
-    restBias: 2.0      // 休憩回り偏り回避
+    partnerBias: 15,    // ペアの重複を強く避ける
+    opponentBias: 12,   // 対戦の重複も強く避ける
+    fatigueBias: 1.2,   // 最近出てない人を優先
+    refBias: 2.0,       // 審判偏り防止
+    restBias: 2.0       // 休憩偏り防止
   };
 }
 
 /* ======================================================
-   ラウンド生成（偏り最小アルゴリズム）
+   ラウンド生成（最強公平）
 ====================================================== */
 
 function generateRound(players, roundNumber, courtCount, weights, schedule) {
@@ -93,6 +93,7 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
     if (!best) break;
 
     const refIndex = chooseReferee(best, players, roundNumber, weights.refBias);
+
     const playMembers = best.filter(i => i !== refIndex);
 
     const finalFour = [...playMembers];
@@ -106,7 +107,6 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
     used.add(refIndex);
     finalFour.forEach(i => used.add(i));
 
-    // 更新
     players[refIndex].refs++;
     players[refIndex].lastRefRound = roundNumber;
 
@@ -128,7 +128,7 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 }
 
 /* ======================================================
-   ペア / 対戦 の履歴管理
+   ペア/対戦 履歴更新（Set には idx を入れる）
 ====================================================== */
 
 function updateHistory(players, teamA, teamB) {
@@ -153,7 +153,7 @@ function updateHistory(players, teamA, teamB) {
 }
 
 /* ======================================================
-   評価（スコアリング）
+   評価関数（最強公平）
 ====================================================== */
 
 function calcGroupScore(players, group, round, w) {
@@ -161,17 +161,17 @@ function calcGroupScore(players, group, round, w) {
 
   const a = group[0], b = group[1], c = group[2], d = group[3];
 
-  // ペア被り
+  // ペア重複
   if (players[a].partners.has(b)) score -= w.partnerBias;
   if (players[c].partners.has(d)) score -= w.partnerBias;
 
-  // 対戦被り
+  // 対戦重複
   if (players[a].opponents.has(c)) score -= w.opponentBias;
   if (players[a].opponents.has(d)) score -= w.opponentBias;
   if (players[b].opponents.has(c)) score -= w.opponentBias;
   if (players[b].opponents.has(d)) score -= w.opponentBias;
 
-  // 試合間隔
+  // 出場間隔
   group.forEach(i => {
     score -= (round - players[i].lastRoundPlayed) * w.fatigueBias;
   });
@@ -182,7 +182,6 @@ function calcGroupScore(players, group, round, w) {
 /* ======================================================
    審判選択
 ====================================================== */
-
 function chooseReferee(group, players, round, refBias) {
   let best = group[0];
   let bestScore = 999999;
