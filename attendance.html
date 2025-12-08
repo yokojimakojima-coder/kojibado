@@ -7,170 +7,91 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-h1 {
+h2 {
   text-align: center;
-  font-size: 42px;
-  font-weight: 900;
+  font-size: 32px;
   color: #ff66b3;
-  margin-bottom: 15px;
-  text-shadow: 2px 2px #ffd6eb;
-}
-
-.block {
-  background: #fff;
-  border-radius: 12px;
-  padding: 14px;
   margin-bottom: 20px;
-  border: 2px solid #ffd3ec;
 }
-
+#activeList {
+  list-style: none;
+  padding-left: 0;
+}
 .list-item {
   background: #ffe6f3;
   border: 2px solid #ffb3d9;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 12px;
-}
-
-.row-top {
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  font-size: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
-.row-bottom {
-  margin-top: 6px;
+.list-item label {
   display: flex;
-  gap: 6px;
   align-items: center;
+  gap: 10px;
+  cursor: pointer;
 }
-
-.name {
-  font-size: 20px;
-  font-weight: bold;
+.drag {
+  font-size: 22px;
+  cursor: grab;
+  color: #ff66b3;
 }
-
-input[type="number"] {
-  width: 90px;
-  padding: 6px;
-  border: 2px solid #ffb3d9;
-  border-radius: 8px;
+.chk {
+  width: 22px;
+  height: 22px;
 }
-
 button {
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  font-size: 18px;
-  font-weight: bold;
-  background: #ff99cc;
-  color: #fff;
+  padding: 14px;
   margin-top: 10px;
+  font-size: 20px;
+  border-radius: 14px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
 }
-button:hover {
-  background: #ff66b3;
-}
+.green { background: #8ee38e; color:white; }
+.red   { background: #ff6675; color:white; }
+.pink  { background: #ff99cc; color:white; }
 </style>
+
 </head>
 
 <body>
 
-<h1>参加者チェック</h1>
+<h2>参加者チェック</h2>
 
-<!-- ナビ -->
-<div class="top-nav">
-  <a href="players.html">名簿管理</a>
-  <a class="active" href="attendance.html">参加者チェック</a>
-  <a href="index.html">試合作成</a>
-</div>
+<!-- 名前管理へ戻る -->
+<button class="pink" onclick="location.href='players.html'">
+  名前管理へ戻る
+</button>
 
-<div class="block">
-  <p style="text-align:center;">
-    今日来ている人にチェックを入れて、<br>
-    途中参加の人は「何試合目から参加か」を設定してね
-  </p>
-</div>
+<p style="text-align:center; margin-top:10px;">
+  今日来ている人にチェックを入れてください
+</p>
 
-<ul id="activeList" style="list-style:none; padding-left:0;"></ul>
+<!-- （名簿読み込み） -->
+<ul id="activeList"></ul>
 
-<button onclick="checkAll()">全員 ON</button>
-<button onclick="uncheckAll()">全員 OFF</button>
-<button onclick="saveActiveAndJoin()">参加者を保存 → 試合作成へ</button>
+<!-- 全員ON/OFF -->
+<button class="green" onclick="checkAll()">全員 ON</button>
+<button class="red" onclick="uncheckAll()">全員 OFF</button>
+
+<!-- 保存して試合作成へ -->
+<button class="green" onclick="saveActivePlayers()">
+  参加者を保存 → 試合作成へ
+</button>
 
 <script src="common.js"></script>
+
 <script>
+// 初期読み込み
 window.onload = () => {
-  loadPlayersToAttendance_full();
+  loadPlayersToAttendance();
 };
-
-/* 名簿＋途中参加情報の読み込み */
-function loadPlayersToAttendance_full() {
-  const list = document.getElementById("activeList");
-  list.innerHTML = "";
-
-  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
-  const active = JSON.parse(localStorage.getItem("activePlayers") || "[]");
-  const joinData = JSON.parse(localStorage.getItem("joinRoundData") || "{}");
-
-  players.forEach(name => {
-    const isChecked = active.includes(name) ? "checked" : "";
-    const joinRound = joinData[name] || 1;
-
-    const li = document.createElement("li");
-    li.className = "list-item";
-
-    li.innerHTML = `
-      <div class="row-top">
-        <label>
-          <input type="checkbox" class="chk" data-name="${name}" ${isChecked}>
-          <span class="name">${name}</span>
-        </label>
-      </div>
-      <div class="row-bottom">
-        <span>参加開始：</span>
-        <input type="number" class="join-input"
-               data-name="${name}"
-               min="1" max="200" value="${joinRound}">
-        <span>試合目〜</span>
-      </div>
-    `;
-
-    list.appendChild(li);
-  });
-}
-
-function checkAll() {
-  document.querySelectorAll(".chk").forEach(cb => cb.checked = true);
-}
-function uncheckAll() {
-  document.querySelectorAll(".chk").forEach(cb => cb.checked = false);
-}
-
-function saveActiveAndJoin() {
-  const active = [];
-  document.querySelectorAll(".chk").forEach(cb => {
-    if (cb.checked) active.push(cb.dataset.name);
-  });
-
-  if (active.length < 4) {
-    alert("参加者は最低4人必要です！");
-    return;
-  }
-
-  const joinData = {};
-  document.querySelectorAll(".join-input").forEach(inp => {
-    const n = inp.dataset.name;
-    const v = Number(inp.value) || 1;
-    joinData[n] = Math.max(1, Math.min(200, v));
-  });
-
-  localStorage.setItem("activePlayers", JSON.stringify(active));
-  localStorage.setItem("joinRoundData", JSON.stringify(joinData));
-
-  alert("保存しました！試合作成へ移動します。");
-  location.href = "index.html";
-}
 </script>
 
 </body>
