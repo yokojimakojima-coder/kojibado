@@ -134,7 +134,7 @@ function addPlayer() {
 
     const list = JSON.parse(localStorage.getItem("players") || "[]");
     list.push(name);
-    localStorage.setItem("players", JSON.stringify(list));
+    localStorage.setItem("allPlayers", JSON.stringify(players));
     document.getElementById("playerName").value = "";
     loadPlayers();
 }
@@ -179,3 +179,4 @@ window.onload = loadPlayers;
 
 </body>
 </html>
+
