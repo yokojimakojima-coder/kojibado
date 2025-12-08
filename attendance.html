@@ -2,140 +2,85 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>参加者チェック - コジバド！！</title>
+<title>参加者チェック</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-  body {
-    font-family: "Hiragino Kaku Gothic ProN", sans-serif;
-    padding: 15px;
-    background: #f7f7f7;
-  }
-  h1 {
-    text-align: center;
-    font-size: 28px;
-  }
-
-  .top-nav {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 16px;
-  }
-  .top-nav a {
-    flex: 1;
-    padding: 10px;
-    background: #4CAF50;
-    color: white;
-    text-align: center;
-    text-decoration: none;
-    border-radius: 6px;
-  }
-  .top-nav a.active {
-    background: #2e7d32;
-  }
-
-  ul { list-style: none; padding: 0; }
-  li {
-    background: white;
-    padding: 10px;
-    margin-bottom: 6px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 18px;
-  }
-
-  button {
-    width: 100%;
-    padding: 12px;
-    background: #4CAF50;
-    border: none;
-    color: white;
-    border-radius: 6px;
-    font-size: 18px;
-    margin-top: 12px;
-  }
-  .btn-row {
-    display: flex;
-    gap: 10px;
-  }
-  .btn-row button {
-    flex: 1;
-    padding: 10px;
-  }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<h1>参加者チェック</h1>
+<h2>参加者チェック</h2>
 
-<div class="top-nav">
-  <a href="players.html">名簿管理</a>
-  <a href="attendance.html" class="active">参加者チェック</a>
-  <a href="index.html">試合作成</a>
+<div style="text-align:center; margin-bottom:15px;">
+    <button onclick="location.href='players.html'" class="btn green">名前管理</button>
+    <button onclick="loadPlayers()" class="btn green">参加者読み込み</button>
+    <button onclick="uncheckAll()" class="btn green">全体解除</button>
 </div>
 
-<div class="btn-row">
-  <button onclick="checkAll()">全員 ON</button>
-  <button onclick="uncheckAll()">全員 OFF</button>
+<p style="text-align:center;">参加者として「今日来ている人」にチェックを入れてください。</p>
+
+<div id="playerList"></div>
+
+<div style="text-align:center; margin-top:20px;">
+    <button onclick="checkAll()" class="btn green">全員 ON</button>
+    <button onclick="uncheckAll()" class="btn green">全員 OFF</button>
 </div>
 
-<ul id="memberList"></ul>
-
-<button onclick="saveActive()">参加者を保存する</button>
+<div style="text-align:center; margin-top:20px;">
+    <button onclick="saveActivePlayers()" class="btn green">参加者を保存する</button>
+</div>
 
 <script>
-let members = [];
+// プレイヤー一覧を読み込む
+function loadPlayers() {
+    const list = JSON.parse(localStorage.getItem("players") || "[]");
+    const active = JSON.parse(localStorage.getItem("activePlayers") || "[]");
 
-window.onload = function () {
-  loadMembers();
-  renderList();
-};
+    let html = "";
+    list.forEach(name => {
+        const checked = active.includes(name) ? "checked" : "";
+        html += `
+            <div class="checkbox-line">
+                <label>
+                    <input type="checkbox" data-name="${name}" ${checked}>
+                    ${name}
+                </label>
+            </div>
+        `;
+    });
 
-function loadMembers() {
-  members = JSON.parse(localStorage.getItem("players") || "[]");
-  if (!Array.isArray(members)) members = [];
+    document.getElementById("playerList").innerHTML = html;
 }
 
-function renderList() {
-  const ul = document.getElementById("memberList");
-  ul.innerHTML = "";
-
-  members.forEach(name => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <label>
-        <input type="checkbox" data-name="${name}"> ${name}
-      </label>
-    `;
-    ul.appendChild(li);
-  });
-}
-
+// 全員オン
 function checkAll() {
-  document.querySelectorAll("input[type='checkbox']")
-    .forEach(cb => cb.checked = true);
+    document.querySelectorAll("#playerList input[type='checkbox']")
+        .forEach(cb => cb.checked = true);
 }
 
+// 全員オフ
 function uncheckAll() {
-  document.querySelectorAll("input[type='checkbox']")
-    .forEach(cb => cb.checked = false);
+    document.querySelectorAll("#playerList input[type='checkbox']")
+        .forEach(cb => cb.checked = false);
 }
 
-function saveActive() {
-  const list = [];
-  document.querySelectorAll("input[type='checkbox']").forEach(cb => {
-    if (cb.checked) list.push(cb.dataset.name);
-  });
+// 参加者保存
+function saveActivePlayers() {
+    const checked = [];
+    document.querySelectorAll("#playerList input[type='checkbox']").forEach(cb => {
+        if (cb.checked) checked.push(cb.dataset.name);
+    });
 
-  if (list.length < 4) {
-    alert("4人以上選択してください！");
-    return;
-  }
+    if (checked.length < 4) {
+        alert("4人以上選択してください");
+        return;
+    }
 
-  localStorage.setItem("activePlayers", JSON.stringify(list));
-  alert("保存しました！");
+    localStorage.setItem("activePlayers", JSON.stringify(checked));
+    alert("保存しました！");
 }
+
+// 初回ロード
+window.onload = loadPlayers;
 </script>
 
 </body>
