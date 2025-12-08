@@ -7,105 +7,96 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-h1 {
+h2 {
   text-align: center;
-  font-size: 42px;
+  font-size: 32px;
   color: #ff66b3;
-  margin: 10px 0;
-  font-weight: 900;
-  text-shadow: 2px 2px #ffd6eb;
-}
-
-.block {
-  background: #fff;
-  padding: 16px;
   margin-bottom: 20px;
-  border-radius: 12px;
-  border: 2px solid #ffd3ec;
 }
-
+#playerList {
+  list-style: none;
+  padding-left: 0;
+}
 .list-item {
   background: #ffe6f3;
   border: 2px solid #ffb3d9;
-  padding: 10px;
-  border-radius: 10px;
+  border-radius: 12px;
+  padding: 12px;
   margin-bottom: 10px;
+  font-size: 20px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
-
 .drag {
-  cursor: grab;
   font-size: 22px;
+  cursor: grab;
   margin-right: 10px;
   color: #ff66b3;
 }
-
 .name {
   flex: 1;
-  font-size: 20px;
 }
-
 .del-btn {
   background: #ff6675;
-  border: none;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 16px;
-  color: #fff;
-}
-
-button {
-  width: 100%;
-  padding: 12px;
+  padding: 8px 14px;
   border-radius: 10px;
   border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
   font-weight: bold;
-  font-size: 18px;
-  background: #ff99cc;
-  color: #fff;
 }
-button:hover {
-  background: #ff66b3;
+.addbox {
+  margin-top: 20px;
 }
-
-input {
+.addbox input {
   width: 100%;
   padding: 12px;
   border: 2px solid #ffb3d9;
   border-radius: 10px;
-  margin-bottom: 10px;
   font-size: 18px;
+  background: #fff6fc;
 }
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  font-size: 20px;
+  border-radius: 14px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+.green { background: #8ee38e; color:white; }
+.pink  { background: #ff99cc; color:white; }
 </style>
 </head>
 
 <body>
 
-<h1>名簿管理</h1>
+<h2>名簿管理</h2>
 
-<!-- ナビ -->
-<div class="top-nav">
-  <a class="active" href="players.html">名簿管理</a>
-  <a href="attendance.html">参加者チェック</a>
-  <a href="index.html">試合作成</a>
+<!-- 戻る -->
+<button class="pink" onclick="location.href='index.html'">
+  試合作成へ戻る
+</button>
+
+<!-- 名簿一覧 -->
+<ul id="playerList"></ul>
+
+<!-- 名前追加 -->
+<div class="addbox">
+  <input id="newPlayer" placeholder="名前を入力（例：コジコジ）">
+  <button class="green" onclick="addPlayer()">名前を追加</button>
 </div>
 
-<div class="block">
-  <h2>名前を追加</h2>
-  <input type="text" id="newPlayer" placeholder="名前を入力（例：コジコジ）">
-  <button onclick="addPlayer()">追加する</button>
-</div>
-
-<div class="block">
-  <h2>現在の名簿</h2>
-  <ul id="playerList" style="list-style:none; padding-left:0;"></ul>
-  <button onclick="savePlayers()">名簿を保存</button>
-</div>
+<button class="green" onclick="savePlayers()">並び順を保存</button>
 
 <script src="common.js"></script>
+
 <script>
+// 初期ロード
 window.onload = () => {
   loadPlayers();
 };
