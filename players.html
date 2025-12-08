@@ -2,87 +2,107 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>名前管理 - コジバド!!</title>
+<title>名簿管理 - コジバド!!</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
 
 <style>
-body {
-  font-family: "Hiragino Maru Gothic ProN","Rounded Mplus 1c",sans-serif;
-  background: #fff9fe;
-  padding: 20px;
+h1 {
+  text-align: center;
+  font-size: 42px;
+  color: #ff66b3;
+  margin: 10px 0;
+  font-weight: 900;
+  text-shadow: 2px 2px #ffd6eb;
 }
 
-h2 {
-  text-align: center;
-  font-size: 32px;
+.block {
+  background: #fff;
+  padding: 16px;
   margin-bottom: 20px;
+  border-radius: 12px;
+  border: 2px solid #ffd3ec;
+}
+
+.list-item {
+  background: #ffe6f3;
+  border: 2px solid #ffb3d9;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drag {
+  cursor: grab;
+  font-size: 22px;
+  margin-right: 10px;
   color: #ff66b3;
 }
 
-.input-area {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+.name {
+  flex: 1;
+  font-size: 20px;
 }
 
-#newPlayer {
-  flex: 1;
-  padding: 12px;
-  border-radius: 10px;
-  border: 2px solid #ffb3d9;
-  font-size: 18px;
+.del-btn {
+  background: #ff6675;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #fff;
 }
 
 button {
   width: 100%;
   padding: 12px;
-  margin-top: 10px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
   font-size: 18px;
   background: #ff99cc;
-  border: none;
   color: #fff;
-  font-weight: bold;
-  border-radius: 10px;
 }
-
 button:hover {
   background: #ff66b3;
 }
 
-.list-item {
-  background: #ffe6f3;
+input {
+  width: 100%;
   padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 10px;
   border: 2px solid #ffb3d9;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.drag {
-  font-size: 22px;
-  color: #ff66b3;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: 18px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>名前管理</h2>
+<h1>名簿管理</h1>
 
-<!-- 入力欄 ＋ 追加ボタン -->
-<div class="input-area">
-  <input id="newPlayer" type="text" placeholder="名前を入力（例：コジコジ）">
-  <button onclick="addPlayer()">追加</button>
+<!-- ナビ -->
+<div class="top-nav">
+  <a class="active" href="players.html">名簿管理</a>
+  <a href="attendance.html">参加者チェック</a>
+  <a href="index.html">試合作成</a>
 </div>
 
-<button onclick="savePlayers()">保存</button>
-<button onclick="location.href='attendance.html'">当日の参加者を選ぶ →</button>
+<div class="block">
+  <h2>名前を追加</h2>
+  <input type="text" id="newPlayer" placeholder="名前を入力（例：コジコジ）">
+  <button onclick="addPlayer()">追加する</button>
+</div>
 
-<ul id="playerList" style="padding-left:0; list-style:none;"></ul>
+<div class="block">
+  <h2>現在の名簿</h2>
+  <ul id="playerList" style="list-style:none; padding-left:0;"></ul>
+  <button onclick="savePlayers()">名簿を保存</button>
+</div>
 
 <script src="common.js"></script>
 <script>
