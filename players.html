@@ -2,27 +2,39 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>名簿管理 - コジバド!!</title>
+<title>名簿管理</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
 
 <style>
-.add-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+h1 {
+  text-align:center;
+  font-size:42px;
+  font-weight:900;
+  color:#ff66b3;
+  text-shadow:2px 2px #ffd6eb;
+  margin:10px 0 20px;
 }
-.add-row input {
-  flex: 1;
+
+.list-item {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px;
+  background:white;
+  border:1px solid #ffd3ec;
+  border-radius:8px;
+  margin-bottom:6px;
 }
-.del-btn {
-  background: #ff6675;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
+
+.list-item span {
+  font-size:18px;
+}
+
+.list-item button {
+  width:70px;
+  padding:6px;
+  font-size:14px;
 }
 </style>
 </head>
@@ -33,63 +45,81 @@
 
 <div class="top-nav">
   <a class="active" href="players.html">名簿管理</a>
-  <a href="attendance.html">参加者チェック</a>
+  <a href="attendance.html">参加チェック</a>
   <a href="index.html">試合作成</a>
 </div>
 
-<div class="block">
+<div class="setting-block">
   <h2>選手を追加</h2>
-
-  <div class="add-row">
-    <input type="text" id="newPlayer" placeholder="名前を入力">
-    <button class="btn-pink" onclick="addPlayer()">追加</button>
-  </div>
+  <input id="playerName" placeholder="名前を入力" style="width:100%; padding:12px; font-size:18px;">
+  <button id="addBtn">追加</button>
 </div>
 
-<div class="block">
+<div class="setting-block">
   <h2>名簿（ドラッグで並び替え可）</h2>
-  <ul id="playerList" style="list-style:none; padding-left:0;"></ul>
+  <div id="playerList"></div>
 </div>
 
-<button class="btn-green" onclick="savePlayers()">名簿を保存</button>
-
-<script src="common.js"></script>
+<button id="saveBtn" style="background:#90ee90;">名簿保存</button>
 
 <script>
-/* ===============================
-   初期読み込み
-=============================== */
+/* -------------------------
+     名簿データ管理
+------------------------- */
 
-window.onload = () => {
-  loadPlayers();
-  enableDragSort();
-};
-
-/* ===============================
-   ドラッグで並び替え
-=============================== */
-
-function enableDragSort() {
+function loadPlayers() {
   const list = document.getElementById("playerList");
-  let dragEl = null;
+  list.innerHTML = "";
 
-  list.addEventListener("dragstart", (e) => {
-    dragEl = e.target;
-    e.target.style.opacity = 0.4;
-  });
+  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
 
-  list.addEventListener("dragend", (e) => {
-    e.target.style.opacity = "";
-  });
+  players.forEach((name, index) => {
+    const div = document.createElement("div");
+    div.className = "list-item";
 
-  list.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    const target = [...list.children].find(li =>
-      li.getBoundingClientRect().top + li.offsetHeight/2 > e.clientY
-    );
-    list.insertBefore(dragEl, target);
+    div.innerHTML = `
+      <span>${name}</span>
+      <button onclick="deletePlayer(${index})">削除</button>
+    `;
+
+    list.appendChild(div);
   });
 }
+
+function deletePlayer(i) {
+  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
+  players.splice(i, 1);
+  localStorage.setItem("allPlayers", JSON.stringify(players));
+  loadPlayers();
+}
+
+/* -------------------------
+     追加・保存
+------------------------- */
+
+document.getElementById("addBtn").onclick = () => {
+  const name = document.getElementById("playerName").value.trim();
+  if (!name) return alert("名前を入力してください");
+
+  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
+
+  if (players.includes(name)) {
+    alert("すでに存在しています");
+    return;
+  }
+
+  players.push(name);
+  localStorage.setItem("allPlayers", JSON.stringify(players));
+  document.getElementById("playerName").value = "";
+  loadPlayers();
+};
+
+document.getElementById("saveBtn").onclick = () => {
+  alert("保存しました！");
+};
+
+/* 初期読み込み */
+loadPlayers();
 </script>
 
 </body>
