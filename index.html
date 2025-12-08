@@ -1,416 +1,188 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>コジバド!!</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#ff66b3">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>コジバド!!</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<script defer src="common.js"></script>
 
-  <style>
-  /* ======================================
-     ★ コジバド!! アニメーションタイトル
-     ====================================== */
-  .kojibado-title {
-      text-align: center;
-      font-size: 62px;
-      font-weight: 900;
-      font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
-      margin-top: 20px;
-      letter-spacing: 4px;
-
-      background: linear-gradient(
-          45deg,
-          #ff66b3,
-          #ffcc33,
-          #66ff99,
-          #66ccff,
-          #cc99ff,
-          #ff66b3
-      );
-      background-size: 400% 400%;
-      -webkit-background-clip: text;
-      color: transparent;
-
-      animation:
-        fadeSlide 1.5s ease-out forwards,
-        rainbow 7s infinite linear,
-        shakeRotate 2s infinite ease-in-out;
-
-      will-change: transform;
-  }
-
-  .kojibado-title .bang {
-      display: inline-block;
-      position: relative;
-      animation: bangBounce 0.8s infinite ease-in-out;
-      will-change: transform;
-  }
-
-  @keyframes shakeRotate {
-    0%, 100% { transform: rotate(0deg); }
-    50% { transform: rotate(1.4deg); }
-  }
-
-  @keyframes fadeSlide {
-    0% { opacity: 0; transform: translateY(-30px) scale(0.9); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  @keyframes rainbow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  @keyframes bangBounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-14px); }
-  }
-
-  /* ======================================
-     UI・レイアウト
-     ====================================== */
-  body {
-    font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
-    background: #fff9fe;
-    padding: 16px;
-    margin: 0;
-  }
-
-  .top-nav {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 16px;
-  }
-  .top-nav a {
-    flex: 1;
-    padding: 12px;
-    text-align: center;
-    background: #ff99cc;
-    color: white;
-    border-radius: 10px;
-    text-decoration: none;
-    font-size: 16px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-    font-weight: bold;
-  }
-  .top-nav a.active {
-    background: #ff66b3;
-  }
-
-  .block {
-    background: #ffffff;
-    padding: 14px;
-    border-radius: 14px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    margin-bottom: 22px;
-  }
-
-  h2 {
-    margin: 0 0 10px 0;
-    border-left: 6px solid #ff66b3;
-    padding-left: 8px;
-    font-size: 22px;
-  }
-
-  .select-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  select, button {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: 2px solid #ffb3d9;
-    background: #ffe6f3;
-    font-size: 16px;
-  }
-  button {
-    background: #ff99cc;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  button:hover {
-    background: #ff82bf;
-  }
-
-  .match-round {
-    padding: 14px;
-    margin-bottom: 16px;
-    border-radius: 14px;
-    background: #fff;
-    border: 2px solid #ffd3ec;
-  }
-  .match-card {
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 10px;
-    background: #fff6fc;
-    border: 1px solid #ffb3d9;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  th {
-    background: #ffe0f4;
-    padding: 8px;
-  }
-  td {
-    background: #fff;
-    padding: 8px;
-    border-bottom: 1px solid #ffd3ec;
-  }
-  </style>
 </head>
-
 <body>
 
-  <!-- タイトル -->
-  <h1 class="kojibado-title">
-    コジバド<span class="bang">!!</span>
-  </h1>
+<h1 class="kojibado-title">コジバド<span class="bang">!!</span></h1>
 
-  <!-- ナビ -->
-  <div class="top-nav">
-    <a href="players.html">名簿管理</a>
-    <a href="attendance.html">参加者チェック</a>
-    <a href="index.html" class="active">試合作成</a>
-  </div>
+<div class="top-nav">
+  <a href="players.html">名簿管理</a>
+  <a href="attendance.html">参加者チェック</a>
+  <a class="active" href="index.html">試合作成</a>
+</div>
 
-  <!-- 設定ブロック -->
-  <div class="block">
-    <h2>試合設定</h2>
+<div class="block">
+  <h2>試合設定</h2>
 
-    <div class="select-row">
-      <div style="flex:1;">
-        <label>AIモード</label>
-        <select id="aiMode">
-          <option value="D">D：全部バランス（おすすめ）</option>
-          <option value="A">A：最強公平型</option>
-          <option value="B">B：ペア重視型</option>
-          <option value="C">C：体力重視型</option>
-          <option value="ML">ML：機械学習ぽいおまかせ</option>
-        </select>
-      </div>
-
-      <div style="flex:1;">
-        <label>コート数</label>
-        <select id="courtsSelect">
-          <option value="1">1コート</option>
-          <option value="2">2コート</option>
-          <option value="3">3コート</option>
-          <option value="4">4コート</option>
-        </select>
-      </div>
+  <div class="select-row">
+    <div style="flex:1;">
+      <label>AIモード</label>
+      <select id="aiMode">
+        <option value="A">A：最強公平型（あなた専用設定）</option>
+      </select>
     </div>
 
-    <!-- 途中参加・途中退出対応 -->
-    <button id="reloadPlayersBtn" style="margin-top:10px; background:#66ccff;">
-      参加者を再読み込み（途中参加・途中退出）
-    </button>
-
-    <!-- 初回20試合自動生成 -->
-    <button id="setupBtn" style="margin-top:10px;">
-      参加者を読み込み → 自動で20試合作成
-    </button>
+    <div style="flex:1;">
+      <label>コート数</label>
+      <select id="courts">
+        <option value="1">1コート</option>
+        <option value="2">2コート</option>
+        <option value="3">3コート</option>
+        <option value="4">4コート</option>
+      </select>
+    </div>
   </div>
 
-  <!-- 試合表示 -->
-  <div id="rounds" class="block">
-    <h2>試合履歴</h2>
-    <p id="noRoundMsg">まだ試合が作成されていません。</p>
-  </div>
+  <button id="setupBtn">参加者を読み込み → 20試合自動生成</button>
+  <button id="reloadPlayersBtn" style="margin-top:10px;background:#66ccff;">
+    参加者を再読み込み（途中参加・途中退出）
+  </button>
+</div>
 
-  <!-- 追加1試合 -->
-  <button id="addBtn" style="display:none;">試合を追加（1試合）</button>
+<div id="rounds" class="block">
+  <h2>試合履歴</h2>
+  <p id="noRoundMsg">まだ試合がありません。</p>
+</div>
 
-  <!-- ステータス -->
-  <div id="playerSummary" class="block" style="display:none;">
-    <h2>プレイヤーステータス</h2>
-    <div id="playerTable"></div>
-  </div>
+<button id="addRoundBtn" style="display:none;">試合を追加（1試合）</button>
 
-  <script src="common.js"></script>
+<div id="playerSummary" class="block" style="display:none;">
+  <h2>プレイヤーステータス</h2>
+  <div id="playerTable"></div>
+</div>
 
-  <script>
-  /* ------------------------------
-     index.html 側のメイン処理
-  --------------------------------*/
-  let players = [];
-  let roundNumber = 1;
-  let currentAiMode = "D";
+<script>
+let players = [];
+let roundNumber = 1;
+let aiMode = "A";
 
-  window.onload = () => {
-    const aiSelect = document.getElementById("aiMode");
-    const setupBtn = document.getElementById("setupBtn");
-    const addBtn = document.getElementById("addBtn");
-    const reloadBtn = document.getElementById("reloadPlayersBtn");
+window.onload = () => {
+  document.getElementById("aiMode").onchange =
+    () => aiMode = document.getElementById("aiMode").value;
 
-    if (aiSelect) {
-      aiSelect.onchange = () => {
-        currentAiMode = aiSelect.value;
-      };
-    }
+  document.getElementById("setupBtn").onclick = setupAndGenerate20;
+  document.getElementById("addRoundBtn").onclick = () => addRound();
 
-    if (setupBtn) {
-      setupBtn.onclick = setupAndGenerate20;
-    }
-
-    if (addBtn) {
-      addBtn.onclick = addOneRound;
-    }
-
-    if (reloadBtn) {
-      reloadBtn.onclick = () => {
-        // 途中参加・途中退出に対応して players を再構築
-        reloadActivePlayers(players, roundNumber);
-        renderPlayerTable();
-        alert("参加者を再読み込みしました！（公平データを再計算）");
-      };
-    }
+  document.getElementById("reloadPlayersBtn").onclick = () => {
+    reloadActivePlayers(players, roundNumber);
+    alert("参加者を再読み込みしました！");
   };
+};
 
-  // AI重み取得
-  function getAiWeights() {
-    return getCommonAiWeights(currentAiMode, players);
+function setupAndGenerate20() {
+  const names = JSON.parse(localStorage.getItem("activePlayers") || "[]");
+  const startRounds = JSON.parse(localStorage.getItem("activePlayersStartRound") || "{}");
+
+  if (names.length < 4) {
+    alert("参加者は4人以上必要です！");
+    return;
   }
 
-  // 初回 20 試合作成
-  function setupAndGenerate20() {
-    const names = JSON.parse(localStorage.getItem("activePlayers") || "[]");
-    if (names.length < 4) {
-      alert("参加者は4人以上必要です！");
-      return;
-    }
+  players = names.map((n,i)=>({
+    name:n, idx:i,
+    games:0, refs:0, rests:0,
+    partners:new Set(), opponents:new Set(),
+    lastRoundPlayed:0, lastRefRound:0, lastRestRound:0,
+    startRound:startRounds[n] || 1
+  }));
 
-    players = names.map((n, i) => ({
-      name: n,
-      idx: i,
-      games: 0,
-      refs: 0,
-      rests: 0,
-      partners: new Set(),
-      opponents: new Set(),
-      lastRoundPlayed: 0,
-      lastRefRound: 0,
-      lastRestRound: 0
-    }));
+  roundNumber = 1;
 
-    roundNumber = 1;
+  document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
+  document.getElementById("addRoundBtn").style.display = "block";
+  document.getElementById("playerSummary").style.display = "block";
 
-    document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
-    document.getElementById("playerSummary").style.display = "block";
-    document.getElementById("addBtn").style.display = "block";
-    renderPlayerTable();
+  renderPlayerTable();
 
-    const courtCount = Number(document.getElementById("courtsSelect").value);
+  const courts = Number(document.getElementById("courts").value);
 
-    for (let i = 0; i < 20; i++) {
-      if (!createNextRound(courtCount)) break;
-    }
+  for (let i=0; i<20; i++) {
+    if (!createNextRound(courts)) break;
+  }
+}
+
+function addRound() {
+  const courts = Number(document.getElementById("courts").value);
+  createNextRound(courts);
+}
+
+function createNextRound(courts) {
+  const result = generateRound(players, roundNumber, courts);
+
+  if (!result) {
+    alert("これ以上公平に作れません！");
+    return false;
   }
 
-  // 1試合追加
-  function addOneRound() {
-    const courtCount = Number(document.getElementById("courtsSelect").value);
-    createNextRound(courtCount);
-  }
+  renderRound(result);
+  renderPlayerTable();
+  roundNumber++;
 
-  // ラウンド生成
-  function createNextRound(courtCount) {
-    const result = generateRound(players, roundNumber, courtCount, getAiWeights());
-    if (!result) {
-      alert("これ以上公平に作れません！");
-      return false;
-    }
+  return true;
+}
 
-    renderRound(result.rounds, result.refs, result.benches);
-    renderPlayerTable();
-    roundNumber++;
-    return true;
-  }
+function renderRound(result) {
+  const roundsDiv = document.getElementById("rounds");
+  const noMsg = document.getElementById("noRoundMsg");
+  if (noMsg) noMsg.remove();
 
-  // ラウンド表示
-  function renderRound(rounds, refs, benches) {
-    const roundsDiv = document.getElementById("rounds");
-    const noMsg = document.getElementById("noRoundMsg");
-    if (noMsg) noMsg.remove();
+  const box = document.createElement("div");
+  box.className = "match-round";
 
-    const box = document.createElement("div");
-    box.className = "match-round";
+  box.innerHTML = `<h3>第 ${roundNumber} 試合</h3>`;
 
-    const h = document.createElement("h3");
-    h.textContent = "第 " + roundNumber + " 試合";
-    box.appendChild(h);
+  result.matches.forEach((m,i)=>{
+    const card = document.createElement("div");
+    card.className = "match-card";
 
-    rounds.forEach((r, i) => {
-      const card = document.createElement("div");
-      card.className = "match-card";
-
-      card.innerHTML = `
-        <p><b>コート${i+1}</b>（審判：${players[refs[i]].name}）</p>
-        <p>Team A：${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}</p>
-        <p>Team B：${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}</p>
-      `;
-
-      box.appendChild(card);
-    });
-
-    if (benches.length > 0) {
-      const rest = document.createElement("p");
-      rest.textContent = "休憩：" + benches.map(i => players[i].name).join(" / ");
-      box.appendChild(rest);
-    }
-
-    roundsDiv.appendChild(box);
-  }
-
-  // ステータス表示
-  function renderPlayerTable() {
-    if (!players || players.length === 0) {
-      document.getElementById("playerSummary").style.display = "none";
-      return;
-    }
-
-    let html = `
-      <table>
-        <tr>
-          <th>名前</th>
-          <th>試合数</th>
-          <th>審判</th>
-          <th>休憩</th>
-        </tr>
+    card.innerHTML = `
+      <p><b>コート${i+1}</b>（審判：${players[m.ref].name}）</p>
+      <p>Team A：${players[m.A1].name} ＆ ${players[m.A2].name}</p>
+      <p>Team B：${players[m.B1].name} ＆ ${players[m.B2].name}</p>
     `;
 
-    players.forEach(p => {
-      html += `
-        <tr>
-          <td>${p.name}</td>
-          <td>${p.games}</td>
-          <td>${p.refs}</td>
-          <td>${p.rests}</td>
-        </tr>
-      `;
-    });
+    box.appendChild(card);
+  });
 
-    html += "</table>";
-
-    document.getElementById("playerTable").innerHTML = html;
+  if (result.bench.length > 0) {
+    const rest = document.createElement("p");
+    rest.textContent = "休憩：" + result.bench.map(i=>players[i].name).join(" / ");
+    box.appendChild(rest);
   }
 
-  // PWA
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js");
-  }
-  </script>
+  roundsDiv.appendChild(box);
+}
+
+function renderPlayerTable() {
+  let html = `
+  <table>
+    <tr>
+      <th>名前</th><th>試合</th><th>審判</th><th>休憩</th>
+    </tr>
+  `;
+
+  players.forEach(p=>{
+    html += `
+    <tr>
+      <td>${p.name}</td>
+      <td>${p.games}</td>
+      <td>${p.refs}</td>
+      <td>${p.rests}</td>
+    </tr>`;
+  });
+
+  html += "</table>";
+
+  document.getElementById("playerTable").innerHTML = html;
+}
+</script>
 
 </body>
 </html>
