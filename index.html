@@ -55,14 +55,14 @@
 let players = [];
 let roundNumber = 1;
 
-/* 最強公平AI（単一モード） */
+// 最強公平AIの重み（1モード固定）
 function getAiWeights() {
   return {
-    restBias: 4.0,      //休憩最優先
-    refBias: 3.5,       //審判
-    gamesBias: 2.2,     //試合数
-    partnerBias: 1.4,   //ペア偏り中間
-    opponentBias: 1.4   //対戦偏り中間
+    restBias: 4.0,      // 休憩差を最優先で均等化
+    refBias: 3.5,       // 審判回数も均等
+    gamesBias: 2.2,     // 試合数バランス
+    partnerBias: 1.4,   // ペア偏り：中くらい
+    opponentBias: 1.4   // 対戦偏り：中くらい
   };
 }
 
@@ -74,6 +74,7 @@ window.onload = () => {
 /* 初回20試合作成 */
 function setupAndGenerate20() {
   const names = JSON.parse(localStorage.getItem("activePlayers") || "[]");
+  const joinRoundData = JSON.parse(localStorage.getItem("joinRoundData") || "{}");
 
   if (names.length < 4) {
     alert("参加者は4人以上必要です！");
@@ -87,7 +88,8 @@ function setupAndGenerate20() {
     refs: 0,
     rests: 0,
     partners: {},
-    opponents: {}
+    opponents: {},
+    joinRound: joinRoundData[n] || 1   // 途中参加ラウンド
   }));
 
   roundNumber = 1;
@@ -99,19 +101,18 @@ function setupAndGenerate20() {
   renderPlayerTable();
 
   const courtCount = Number(document.getElementById("courtsSelect").value);
-
   for (let i = 0; i < 20; i++) {
     if (!createNextRound(courtCount)) break;
   }
 }
 
-/* 1試合追加 */
+/* 無限に1試合ずつ追加可能 */
 function addOneRound() {
   const courtCount = Number(document.getElementById("courtsSelect").value);
   createNextRound(courtCount);
 }
 
-/* AIラウンド生成 */
+/* ラウンド生成 */
 function createNextRound(courtCount) {
   const result = generateRound(players, roundNumber, courtCount, getAiWeights());
 
