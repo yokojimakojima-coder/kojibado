@@ -64,9 +64,8 @@ h1 {
 
 <script>
 /* -------------------------
-     名簿データ管理
+     名簿を読み込んで表示
 ------------------------- */
-
 function loadPlayers() {
   const list = document.getElementById("playerList");
   list.innerHTML = "";
@@ -86,6 +85,9 @@ function loadPlayers() {
   });
 }
 
+/* -------------------------
+     削除
+------------------------- */
 function deletePlayer(i) {
   const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
   players.splice(i, 1);
@@ -94,9 +96,8 @@ function deletePlayer(i) {
 }
 
 /* -------------------------
-     追加・保存
+     追加
 ------------------------- */
-
 document.getElementById("addBtn").onclick = () => {
   const name = document.getElementById("playerName").value.trim();
   if (!name) return alert("名前を入力してください");
@@ -110,16 +111,22 @@ document.getElementById("addBtn").onclick = () => {
 
   players.push(name);
   localStorage.setItem("allPlayers", JSON.stringify(players));
+
   document.getElementById("playerName").value = "";
   loadPlayers();
 };
 
+/* 保存ボタン（形式だけ） */
 document.getElementById("saveBtn").onclick = () => {
   alert("保存しました！");
 };
 
-/* 初期読み込み */
-loadPlayers();
+/* -------------------------
+     初期ロード
+------------------------- */
+window.onload = () => {
+  loadPlayers();
+};
 </script>
 
 </body>
