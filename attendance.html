@@ -13,7 +13,6 @@
 <div style="text-align:center; margin-bottom:15px;">
     <button onclick="location.href='players.html'" class="btn green">名前管理</button>
     <button onclick="loadPlayers()" class="btn green">参加者読み込み</button>
-    <button onclick="uncheckAll()" class="btn green">全体解除</button>
 </div>
 
 <p style="text-align:center;">参加者として「今日来ている人」にチェックを入れてください。</p>
@@ -22,7 +21,7 @@
 
 <div style="text-align:center; margin-top:20px;">
     <button onclick="checkAll()" class="btn green">全員 ON</button>
-    <button onclick="uncheckAll()" class="btn green">全員 OFF</button>
+    <button onclick="uncheckAll()" class="btn red">全員 OFF</button>
 </div>
 
 <div style="text-align:center; margin-top:20px;">
@@ -63,7 +62,7 @@ function uncheckAll() {
         .forEach(cb => cb.checked = false);
 }
 
-// 参加者保存
+// 参加者保存 → 自動で index.html に移動
 function saveActivePlayers() {
     const checked = [];
     document.querySelectorAll("#playerList input[type='checkbox']").forEach(cb => {
@@ -76,7 +75,10 @@ function saveActivePlayers() {
     }
 
     localStorage.setItem("activePlayers", JSON.stringify(checked));
-    alert("保存しました！");
+    alert("保存しました！試合作成画面へ移動します。");
+
+    // ⬇ 保存後に自動移動（あなたのトップページに合わせて変更してOK）
+    location.href = "index.html";
 }
 
 // 初回ロード
