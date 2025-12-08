@@ -1,185 +1,98 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>参加者チェック - コジバド!!</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
-      background: #fff9fe;
-      margin: 0;
-      padding: 16px;
-    }
-    h1 {
-      text-align: center;
-      font-size: 36px;
-      margin: 8px 0 16px;
-      color: #ff66b3;
-      text-shadow: 2px 2px #ffd6eb;
-    }
-    .top-nav {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 16px;
-    }
-    .top-nav a {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      background: #ff99cc;
-      color: #fff;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      font-size: 14px;
-    }
-    .top-nav a.active { background: #ff66b3; }
+<meta charset="UTF-8">
+<title>参加者チェック - コジバド!!</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
 
-    .block {
-      background: #fff;
-      border-radius: 12px;
-      padding: 14px;
-      border: 2px solid #ffd3ec;
-      margin-bottom: 18px;
-    }
-    h2 {
-      margin: 0 0 10px;
-      border-left: 6px solid #ff66b3;
-      padding-left: 8px;
-      font-size: 20px;
-    }
+<style>
+body {
+  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
+  background: #fff9fe;
+  padding: 20px;
+}
 
-    ul#activeList {
-      list-style: none;
-      padding-left: 0;
-      margin: 0;
-    }
-    .list-item {
-      background: #ffe6f3;
-      padding: 10px 12px;
-      border-radius: 10px;
-      margin-bottom: 8px;
-      border: 2px solid #ffb3d9;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 18px;
-    }
-    .list-item label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      width: 100%;
-    }
+h2 {
+  text-align: center;
+  font-size: 32px;
+  color: #ff66b3;
+  margin-bottom: 20px;
+}
 
-    button {
-      width: 100%;
-      padding: 12px;
-      border-radius: 12px;
-      border: none;
-      font-weight: bold;
-      font-size: 16px;
-      margin-top: 10px;
-      cursor: pointer;
-      color: #fff;
-      background: #ff99cc;
-    }
-    button.green { background: #8ee38e; }
-    button.red   { background: #ff6675; }
-    button:hover { filter: brightness(1.05); }
-  </style>
+/* リスト行 */
+.list-item {
+  background: #ffe6f3;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 2px solid #ffb3d9;
+  font-size: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-item label {
+  display: flex;
+  gap: 12px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.drag {
+  font-size: 22px;
+  cursor: grab;
+  color: #ff66b3;
+}
+
+/* ボタン */
+button {
+  width: 100%;
+  padding: 15px;
+  font-size: 20px;
+  border-radius: 15px;
+  border: none;
+  font-weight: bold;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.green { background: #8ee38e; color: white; }
+.red   { background: #ff6675; color: white; }
+.pink  { background: #ff99cc; color: white; }
+</style>
 </head>
+
 <body>
 
-<h1>コジバド!!</h1>
+<h2>参加者チェック</h2>
 
-<div class="top-nav">
-  <a href="players.html">名前管理</a>
-  <a href="attendance.html" class="active">参加者チェック</a>
-  <a href="index.html">試合作成</a>
-</div>
+<!-- 名簿へ戻る -->
+<button class="pink" onclick="location.href='players.html'">
+  名前管理へ戻る
+</button>
 
-<div class="block">
-  <h2>今日来ているメンバー</h2>
-  <p style="margin-top:0; font-size:14px;">
-    名簿から、今日来ている人だけチェックを入れてね。<br>
-    途中参加・途中抜けの時間は、<b>試合作成タブ</b>であとから設定できるよ。
-  </p>
+<p style="text-align:center; margin-top:10px;">
+  今日来ている人にチェックを入れてください
+</p>
 
-  <ul id="activeList"></ul>
+<!-- 名簿読み込み領域 -->
+<ul id="activeList" style="padding-left:0; list-style:none;"></ul>
 
-  <button class="green" onclick="checkAll()">全員 ON</button>
-  <button class="red"   onclick="uncheckAll()">全員 OFF</button>
-  <button class="green" onclick="saveActivePlayers()">参加者を保存 → 試合作成へ</button>
-</div>
+<!-- ボタン群 -->
+<button class="green" onclick="checkAll()">全員 ON</button>
+<button class="red"   onclick="uncheckAll()">全員 OFF</button>
+
+<button class="green" onclick="saveActivePlayers()">参加者を保存 → 試合作成へ</button>
 
 <script src="common.js"></script>
+
 <script>
-  const MAX_ROUND = 9999;
-
-  window.onload = () => {
-    renderActiveList();
-  };
-
-  function renderActiveList() {
-    const listEl = document.getElementById("activeList");
-    listEl.innerHTML = "";
-
-    const all = getAllPlayers();
-    const active = new Set(getActivePlayers());
-
-    all.forEach(name => {
-      const li = document.createElement("li");
-      li.className = "list-item";
-
-      const checked = active.has(name) ? "checked" : "";
-
-      li.innerHTML = `
-        <label>
-          <input type="checkbox" class="chk" data-name="${name}" ${checked}>
-          <span class="name">${name}</span>
-        </label>
-      `;
-      listEl.appendChild(li);
-    });
-  }
-
-  function checkAll() {
-    document.querySelectorAll(".chk").forEach(cb => cb.checked = true);
-  }
-
-  function uncheckAll() {
-    document.querySelectorAll(".chk").forEach(cb => cb.checked = false);
-  }
-
-  function saveActivePlayers() {
-    const names = [];
-    document.querySelectorAll(".chk").forEach(cb => {
-      if (cb.checked) names.push(cb.dataset.name);
-    });
-
-    if (names.length < 4) {
-      alert("最低 4 人以上チェックしてね！");
-      return;
-    }
-
-    // 今日の参加者を保存
-    localStorage.setItem("activePlayers", JSON.stringify(names));
-
-    // 全員「第1試合〜ずっと参加」の初期スケジュールを作成
-    const schedule = {};
-    names.forEach(n => {
-      schedule[n] = [{ from: 1, to: MAX_ROUND }];
-    });
-    localStorage.setItem("scheduleData", JSON.stringify(schedule));
-
-    alert("参加者を保存しました！試合作成タブへどうぞ♡");
-    location.href = "index.html";
-  }
+/* 初期読み込み */
+window.onload = () => {
+  loadPlayersToAttendance();
+};
 </script>
+
 </body>
 </html>
