@@ -7,159 +7,88 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-body {
-  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
-  background: #fff9fe;
-  padding: 20px;
-}
-
-h2 {
-  text-align: center;
-  font-size: 32px;
-  margin-bottom: 20px;
-  color: #ff66b3;
-}
-
-/* 行デザイン */
-.list-item {
-  background: #ffe6f3;
-  padding: 14px;
-  border-radius: 12px;
-  border: 2px solid #ffb3d9;
-  margin-bottom: 10px;
-  font-size: 20px;
-
+.add-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  cursor: grab;
+  gap: 10px;
+  margin-bottom: 15px;
 }
-
-.name {
-  flex-grow: 1;
-  padding-left: 10px;
+.add-row input {
+  flex: 1;
 }
-
-/* ボタン */
-button {
-  width: 100%;
-  padding: 14px;
-  font-size: 18px;
+.del-btn {
+  background: #ff6675;
+  color: white;
   border: none;
-  border-radius: 12px;
-  font-weight: bold;
-  margin-top: 10px;
+  padding: 6px 12px;
+  border-radius: 8px;
   cursor: pointer;
-}
-
-.pink  { background: #ff99cc; color: white; }
-.green { background: #8ee38e; color: white; }
-.red   { background: #ff6675; color: white; }
-
-input {
-  width: 100%;
-  padding: 14px;
-  font-size: 18px;
-  border-radius: 12px;
-  border: 2px solid #ffb3d9;
-  margin-bottom: 10px;
+  font-size: 14px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>名簿管理</h2>
+<h1>名簿管理</h1>
 
-<button class="pink" onclick="location.href='attendance.html'">参加者チェックへ</button>
+<div class="top-nav">
+  <a class="active" href="players.html">名簿管理</a>
+  <a href="attendance.html">参加者チェック</a>
+  <a href="index.html">試合作成</a>
+</div>
 
-<input id="newPlayer" type="text" placeholder="名前を入力（例：コジコジ）">
-<button class="green" onclick="addPlayer()">追加</button>
+<div class="block">
+  <h2>選手を追加</h2>
 
-<ul id="playerList" style="padding-left:0; list-style:none;"></ul>
+  <div class="add-row">
+    <input type="text" id="newPlayer" placeholder="名前を入力">
+    <button class="btn-pink" onclick="addPlayer()">追加</button>
+  </div>
+</div>
 
-<button class="green" onclick="savePlayers()">名簿を保存</button>
-<button class="red" onclick="resetPlayers()">名簿リセット</button>
+<div class="block">
+  <h2>名簿（ドラッグで並び替え可）</h2>
+  <ul id="playerList" style="list-style:none; padding-left:0;"></ul>
+</div>
+
+<button class="btn-green" onclick="savePlayers()">名簿を保存</button>
 
 <script src="common.js"></script>
 
 <script>
-/* =====================================
-   初期表示
-===================================== */
+/* ===============================
+   初期読み込み
+=============================== */
+
 window.onload = () => {
   loadPlayers();
   enableDragSort();
 };
 
-/* =====================================
-   ドラッグ並び替え対応
-===================================== */
+/* ===============================
+   ドラッグで並び替え
+=============================== */
+
 function enableDragSort() {
   const list = document.getElementById("playerList");
   let dragEl = null;
 
-  list.addEventListener("dragstart", e => {
+  list.addEventListener("dragstart", (e) => {
     dragEl = e.target;
     e.target.style.opacity = 0.4;
   });
 
-  list.addEventListener("dragend", e => {
+  list.addEventListener("dragend", (e) => {
     e.target.style.opacity = "";
   });
 
-  list.addEventListener("dragover", e => {
+  list.addEventListener("dragover", (e) => {
     e.preventDefault();
-    const target = e.target.closest(".list-item");
-    if (target && target !== dragEl) {
-      const rect = target.getBoundingClientRect();
-      const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
-      list.insertBefore(dragEl, next ? target.nextSibling : target);
-    }
+    const target = [...list.children].find(li =>
+      li.getBoundingClientRect().top + li.offsetHeight/2 > e.clientY
+    );
+    list.insertBefore(dragEl, target);
   });
-
-  // li 要素に draggable 属性を付与
-  document.querySelectorAll(".list-item").forEach(li => {
-    li.setAttribute("draggable", true);
-  });
-}
-
-/* =====================================
-   名簿追加
-===================================== */
-function addPlayer() {
-  const input = document.getElementById("newPlayer");
-  const name = input.value.trim();
-  if (!name) return;
-
-  const all = getAllPlayers();
-  all.push(name);
-  localStorage.setItem("allPlayers", JSON.stringify(all));
-
-  input.value = "";
-  loadPlayers();
-  enableDragSort();
-}
-
-/* =====================================
-   名簿リセット
-===================================== */
-function resetPlayers() {
-  if (!confirm("名簿をすべて消去しますか？")) return;
-  localStorage.removeItem("allPlayers");
-  loadPlayers();
-}
-
-/* =====================================
-   削除（common.js の deletePlayer でもOK）
-===================================== */
-function deletePlayer(index) {
-  const all = getAllPlayers();
-  all.splice(index, 1);
-  localStorage.setItem("allPlayers", JSON.stringify(all));
-  loadPlayers();
-  enableDragSort();
 }
 </script>
 
