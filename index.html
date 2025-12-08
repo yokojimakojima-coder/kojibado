@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>コジバド!!</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#ff66b3">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>コジバド!!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ff66b3">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <!-- ★タイトル★ -->
-<h1 class="title-main">コジバド<span class="title-bang">!!</span></h1>
+<h1 class="title-main">
+  コジバド<span class="title-bang">!!</span>
+</h1>
 
 <!-- ★ナビゲーション -->
 <div class="top-nav">
@@ -20,7 +22,7 @@
   <a class="active" href="index.html">試合作成</a>
 </div>
 
-<!-- ★試合設定 -->
+<!-- ★試合設定ブロック -->
 <div class="block">
   <h2>試合設定</h2>
 
@@ -32,7 +34,14 @@
     <option value="4">4コート</option>
   </select>
 
-  <button id="setupBtn">参加者を読み込み → 自動で20試合作成</button>
+  <button id="setupBtn">
+    参加者を読み込み → 自動で20試合作成
+  </button>
+
+  <!-- ★途中参加用ボタン -->
+  <button id="lateJoinBtn" style="margin-top:10px;">
+    途中参加メンバーを追加する
+  </button>
 </div>
 
 <!-- ★試合カード一覧 -->
@@ -41,9 +50,12 @@
   <p id="noRoundMsg">まだ試合が作成されていません。</p>
 </div>
 
-<button id="addBtn" class="add-round-btn" style="display:none;">試合を追加（1試合）</button>
+<!-- ★追加試合ボタン（無限追加OK） -->
+<button id="addBtn" class="add-round-btn" style="display:none;">
+  試合を追加（1試合）
+</button>
 
-<!-- ★プレイヤーステータス -->
+<!-- ★ステータス -->
 <div id="playerSummary" class="block" style="display:none;">
   <h2>プレイヤーステータス</h2>
   <div id="playerTable"></div>
@@ -52,48 +64,48 @@
 <script src="common.js"></script>
 
 <script>
-let players = [];
-let roundNumber = 1;
+let players = [];      // 現在の全プレイヤー（オブジェクト配列）
+let roundNumber = 1;   // 何試合目か（1スタート）
 
-// 最強公平AIの重み（1モード固定）
+// 最強公平AIの重み（モード1本固定）
 function getAiWeights() {
-  return {
-    restBias: 4.0,      // 休憩差を最優先で均等化
-    refBias: 3.5,       // 審判回数も均等
-    gamesBias: 2.2,     // 試合数バランス
-    partnerBias: 1.4,   // ペア偏り：中くらい
-    opponentBias: 1.4   // 対戦偏り：中くらい
-  };
+  return getCommonAiWeights(); // common.js の関数を利用
 }
 
 window.onload = () => {
   document.getElementById("setupBtn").onclick = setupAndGenerate20;
   document.getElementById("addBtn").onclick = addOneRound;
+  document.getElementById("lateJoinBtn").onclick = addLatePlayerFromUI;
 };
 
-/* 初回20試合作成 */
+/* ==========================================
+   初回：20試合いっきに作成
+========================================== */
 function setupAndGenerate20() {
-  const names = JSON.parse(localStorage.getItem("activePlayers") || "[]");
-  const joinRoundData = JSON.parse(localStorage.getItem("joinRoundData") || "{}");
+  const activeNames = JSON.parse(localStorage.getItem("activePlayers") || "[]");
 
-  if (names.length < 4) {
+  if (activeNames.length < 4) {
     alert("参加者は4人以上必要です！");
     return;
   }
 
-  players = names.map((n, i) => ({
+  // 既存プレイヤーを初期化（全員「第1試合から参加」）
+  players = activeNames.map((n, i) => ({
     name: n,
-    idx: i,
     games: 0,
     refs: 0,
     rests: 0,
-    partners: {},
-    opponents: {},
-    joinRound: joinRoundData[n] || 1   // 途中参加ラウンド
+    partners: new Set(),
+    opponents: new Set(),
+    lastRoundPlayed: 0,
+    lastRefRound: 0,
+    lastRestRound: 0,
+    joinRound: 1   // ★ 最初から居た人は第1試合から
   }));
 
   roundNumber = 1;
 
+  // 画面初期化
   document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
   document.getElementById("playerSummary").style.display = "block";
   document.getElementById("addBtn").style.display = "block";
@@ -101,34 +113,84 @@ function setupAndGenerate20() {
   renderPlayerTable();
 
   const courtCount = Number(document.getElementById("courtsSelect").value);
+
+  // とりあえず20試合作る（途中で詰まったら止まる）
   for (let i = 0; i < 20; i++) {
     if (!createNextRound(courtCount)) break;
   }
 }
 
-/* 無限に1試合ずつ追加可能 */
+/* ==========================================
+   1試合だけ追加（無限に押してOK）
+========================================== */
 function addOneRound() {
   const courtCount = Number(document.getElementById("courtsSelect").value);
   createNextRound(courtCount);
 }
 
-/* ラウンド生成 */
+/* ==========================================
+   実際の「次の試合」をAIで作る
+========================================== */
 function createNextRound(courtCount) {
   const result = generateRound(players, roundNumber, courtCount, getAiWeights());
 
   if (!result) {
-    alert("これ以上公平に作れません！");
+    alert("これ以上公平に試合を組めません…！");
     return false;
   }
 
   renderRound(result.rounds, result.refs, result.benches);
   renderPlayerTable();
-
   roundNumber++;
   return true;
 }
 
-/* ★ カードUIで試合表示 ★ */
+/* ==========================================
+   ★ 途中参加メンバー追加ボタンの処理
+========================================== */
+function addLatePlayerFromUI() {
+  const all = JSON.parse(localStorage.getItem("allPlayers") || "[]");
+  const currentNames = players.map(p => p.name);
+
+  // まだ players に居ないメンバーだけ候補表示
+  const candidates = all.filter(n => !currentNames.includes(n));
+
+  if (candidates.length === 0) {
+    alert("名簿に登録済みで、まだ今日参加してない人がいません！");
+    return;
+  }
+
+  const name = prompt(
+    "途中参加させる人の名前を入力してね。\n\n【候補】\n" + candidates.join(" / ")
+  );
+
+  if (!name) return;
+
+  if (!all.includes(name)) {
+    alert("その名前は名簿に登録されていません。\n先に「名簿管理」で追加してね！");
+    return;
+  }
+  if (currentNames.includes(name)) {
+    alert("その人はすでに今回のメンバーに入っています！");
+    return;
+  }
+
+  // ★ common.js の関数で途中参加プレイヤーを追加
+  addLatePlayer(name, roundNumber, players);
+
+  // localStorage の activePlayers にも反映（次回以降のため）
+  const active = JSON.parse(localStorage.getItem("activePlayers") || "[]");
+  if (!active.includes(name)) {
+    active.push(name);
+    localStorage.setItem("activePlayers", JSON.stringify(active));
+  }
+
+  alert(name + " さんを「第" + roundNumber + "試合目からの途中参加」として登録しました！\n次に試合を作成するときから自動で組み込まれます。");
+}
+
+/* ==========================================
+   ★ カードUIで試合表示
+========================================== */
 function renderRound(rounds, refs, benches) {
   const roundsDiv = document.getElementById("rounds");
   const noMsg = document.getElementById("noRoundMsg");
@@ -147,18 +209,22 @@ function renderRound(rounds, refs, benches) {
 
     card.innerHTML = `
       <div class="card-header">
-        <span class="court-icon">🏸 コート${i+1}</span>
+        <span class="court-icon">🏸 コート${i + 1}</span>
         <span class="ref-icon">👑 審判：${players[refs[i]].name}</span>
       </div>
 
       <div class="team team-a">
         <div class="team-title">🔵 TEAM A</div>
-        <div class="team-members">${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}</div>
+        <div class="team-members">
+          ${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}
+        </div>
       </div>
 
       <div class="team team-b">
         <div class="team-title">🔴 TEAM B</div>
-        <div class="team-members">${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}</div>
+        <div class="team-members">
+          ${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}
+        </div>
       </div>
     `;
     box.appendChild(card);
@@ -167,14 +233,17 @@ function renderRound(rounds, refs, benches) {
   if (benches.length > 0) {
     const rest = document.createElement("p");
     rest.className = "rest-info";
-    rest.innerHTML = "💺 休憩：" + benches.map(i => players[i].name).join(" / ");
+    rest.innerHTML =
+      "💺 休憩：" + benches.map(i => players[i].name).join(" / ");
     box.appendChild(rest);
   }
 
   roundsDiv.appendChild(box);
 }
 
-/* ステータス表 */
+/* ==========================================
+   ★ プレイヤーステータス表
+========================================== */
 function renderPlayerTable() {
   let html = `
     <table>
@@ -201,7 +270,9 @@ function renderPlayerTable() {
   document.getElementById("playerTable").innerHTML = html;
 }
 
-/* PWA */
+/* ==========================================
+   ★ PWA Service Worker 登録
+========================================== */
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
