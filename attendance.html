@@ -7,91 +7,196 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
+body {
+  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
+  background: #fff9fe;
+  padding: 20px;
+}
+
 h2 {
   text-align: center;
   font-size: 32px;
   color: #ff66b3;
   margin-bottom: 20px;
 }
-#activeList {
-  list-style: none;
-  padding-left: 0;
-}
+
+/* リスト行 */
 .list-item {
   background: #ffe6f3;
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 12px;
   border: 2px solid #ffb3d9;
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 10px;
   font-size: 20px;
+}
+
+/* 中の横並び */
+.row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.list-item label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
+
+.range-box {
+  margin-top: 8px;
+  background: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ffb3d9;
 }
-.drag {
-  font-size: 22px;
-  cursor: grab;
-  color: #ff66b3;
+
+select {
+  padding: 6px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ff99cc;
 }
-.chk {
-  width: 22px;
-  height: 22px;
-}
+
 button {
   width: 100%;
-  padding: 14px;
-  margin-top: 10px;
+  padding: 15px;
   font-size: 20px;
-  border-radius: 14px;
+  border-radius: 15px;
   border: none;
   font-weight: bold;
   cursor: pointer;
+  margin-top: 12px;
 }
-.green { background: #8ee38e; color:white; }
-.red   { background: #ff6675; color:white; }
-.pink  { background: #ff99cc; color:white; }
-</style>
 
+.green { background: #8ee38e; color: white; }
+.red   { background: #ff6675; color: white; }
+.pink  { background: #ff99cc; color: white; }
+</style>
 </head>
 
 <body>
 
 <h2>参加者チェック</h2>
 
-<!-- 名前管理へ戻る -->
-<button class="pink" onclick="location.href='players.html'">
-  名前管理へ戻る
-</button>
+<button class="pink" onclick="location.href='players.html'">名前管理へ戻る</button>
 
 <p style="text-align:center; margin-top:10px;">
-  今日来ている人にチェックを入れてください
+  今日来ている人をチェックし、<br>
+  途中参加・途中抜けがある場合は設定してください。
 </p>
 
-<!-- （名簿読み込み） -->
-<ul id="activeList"></ul>
+<ul id="activeList" style="padding-left:0; list-style:none;"></ul>
 
-<!-- 全員ON/OFF -->
 <button class="green" onclick="checkAll()">全員 ON</button>
-<button class="red" onclick="uncheckAll()">全員 OFF</button>
+<button class="red"   onclick="uncheckAll()">全員 OFF</button>
 
-<!-- 保存して試合作成へ -->
-<button class="green" onclick="saveActivePlayers()">
-  参加者を保存 → 試合作成へ
-</button>
+<button class="green" onclick="saveActivePlayers()">参加者を保存 → 試合作成へ</button>
 
 <script src="common.js"></script>
 
 <script>
-// 初期読み込み
+/* ============================================
+   初期読み込み
+============================================ */
 window.onload = () => {
   loadPlayersToAttendance();
 };
+
+/* ============================================
+   参加者名簿読み込み
+============================================ */
+function loadPlayersToAttendance() {
+
+  const list = document.getElementById("activeList");
+  list.innerHTML = "";
+
+  const all = getAllPlayers();
+  const active = getActivePlayers();
+  const schedule = getSchedule();
+
+  all.forEach(name => {
+
+    const checked = active.includes(name) ? "checked" : "";
+
+    // 過去の設定を反映
+    const seg = schedule[name] || [{ from: 1, to: 40 }];
+
+    const li = document.createElement("li");
+    li.className = "list-item";
+
+    li.innerHTML = `
+      <div class="row">
+        <label>
+          <input type="checkbox" class="chk" data-name="${name}" ${checked}>
+          <span class="name">${name}</span>
+        </label>
+      </div>
+
+      <div class="range-box">
+        <span>参加ラウンド：</span>
+        <select class="fromSel" data-name="${name}">
+          ${makeRoundOptions(seg[0].from)}
+        </select>
+        〜
+        <select class="toSel" data-name="${name}">
+          ${makeRoundOptions(seg[0].to)}
+        </select>
+      </div>
+    `;
+
+    list.appendChild(li);
+  });
+}
+
+/* ラウンド選択肢生成（1〜40） */
+function makeRoundOptions(selected) {
+  let html = "";
+  for (let i = 1; i <= 40; i++) {
+    html += `<option value="${i}" ${i == selected ? "selected" : ""}>${i}</option>`;
+  }
+  return html;
+}
+
+/* ============================================
+   全員 ON / OFF
+============================================ */
+function checkAll() {
+  document.querySelectorAll(".chk").forEach(cb => cb.checked = true);
+}
+function uncheckAll() {
+  document.querySelectorAll(".chk").forEach(cb => cb.checked = false);
+}
+
+/* ============================================
+   保存 → index.htmlへ
+============================================ */
+function saveActivePlayers() {
+
+  const active = [];
+  const schedule = {};
+
+  document.querySelectorAll("#activeList li").forEach(li => {
+
+    const cb = li.querySelector(".chk");
+    const name = cb.dataset.name;
+
+    if (cb.checked) active.push(name);
+
+    const fromSel = li.querySelector(".fromSel");
+    const toSel   = li.querySelector(".toSel");
+
+    schedule[name] = [{
+      from: Number(fromSel.value),
+      to:   Number(toSel.value)
+    }];
+  });
+
+  if (active.length < 4) {
+    alert("参加者は最低4人必要です！");
+    return;
+  }
+
+  localStorage.setItem("activePlayers", JSON.stringify(active));
+  saveSchedule(schedule);
+
+  alert("保存しました！試合作成へ移動します。");
+  location.href = "index.html";
+}
 </script>
 
 </body>
