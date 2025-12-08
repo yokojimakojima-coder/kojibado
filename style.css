@@ -1,198 +1,126 @@
-/* ================================
-   基本設定
-================================ */
+/* ============================================
+   コジバド!! 共通スタイル style.css
+   （スマホ優先・ポップ系デザイン）
+============================================ */
+
+/* 全体ベース */
 body {
-  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
-  background:#fff9fe;
-  margin:0;
-  padding:16px;
+  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", system-ui, sans-serif;
+  background: #fff9fe;
+  color: #333;
+  margin: 0;
+  padding: 12px;
+  box-sizing: border-box;
 }
 
-/* ================================
-   タイトル（コジバド!!）
-================================ */
-.kojibado-title {
-  text-align:center;
-  font-size:60px;
-  font-weight:900;
-  background:linear-gradient(45deg,#ff66b3,#ffcc33,#66ff99,#66ccff,#cc99ff,#ff66b3);
-  background-size:400% 400%;
-  -webkit-background-clip:text;
-  color:transparent;
-  animation:rainbow 7s infinite linear, fadeIn 1s ease-out;
+/* 見出し共通（h2 は各ページの <style> でも上書きOK） */
+h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  border-left: 6px solid #ff66b3;
+  padding-left: 8px;
 }
 
-.bang {
-  display:inline-block;
-  animation:bounce 0.8s infinite ease-in-out;
+/* リンクの基本 */
+a {
+  color: inherit;
 }
 
-/* アニメーション */
-@keyframes rainbow {
-  0%{background-position:0% 50%;}
-  50%{background-position:100% 50%;}
-  100%{background-position:0% 50%;}
-}
-@keyframes fadeIn {
-  0%{opacity:0; transform:translateY(-30px) scale(0.8);}
-  100%{opacity:1; transform:translateY(0) scale(1);}
-}
-@keyframes bounce {
-  0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-13px);}
-}
-
-/* ================================
-   ナビバー
-================================ */
+/* トップのタブナビゲーション */
 .top-nav {
-  display:flex;
-  gap:8px;
-  margin-bottom:20px;
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
 .top-nav a {
-  flex:1;
-  padding:14px;
-  text-align:center;
-  background:#ff99cc;
-  color:white;
-  border-radius:14px;
-  text-decoration:none;
-  font-weight:bold;
-  font-size:16px;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-  transition:0.15s;
-}
-
-.top-nav a:hover {
-  transform:translateY(-1px);
-  box-shadow:0 4px 10px rgba(0,0,0,0.22);
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  background: #ff99cc;
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 
 .top-nav a.active {
-  background:#ff66b3;
+  background: #ff66b3;
 }
 
-/* ================================
-   パネル（block）
-================================ */
+/* 汎用ブロックカード（各ページで .block 使用） */
 .block {
-  background:white;
-  padding:18px;
-  border-radius:18px;
-  margin-bottom:24px;
-
-  /* ★ パネル感復活ポイント！ */
-  border:2px solid #ffd3ec;
-  box-shadow:
-    0 3px 10px rgba(0,0,0,0.12),
-    0 0 8px rgba(255,180,220,0.4) inset;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px;
+  border: 2px solid #ffd3ec;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
-/* タイトル */
-h2 {
-  margin:0 0 12px 0;
-  border-left:6px solid #ff66b3;
-  padding-left:10px;
-  font-size:22px;
-  font-weight:700;
+/* 名簿や参加者リストの行（各ページ側で細かく上書きしてOK） */
+.list-item {
+  background: #ffe6f3;
+  border-radius: 10px;
+  border: 2px solid #ffb3d9;
+  padding: 10px;
+  margin-bottom: 10px;
 }
 
-/* ================================
-   選択 UI
-================================ */
-.select-row {
-  display:flex;
-  gap:12px;
+/* ドラッグ表示用アイコン */
+.drag {
+  cursor: grab;
+  color: #ff66b3;
 }
 
-select, button {
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:2px solid #ffb3d9;
-  background:#ffe6f3;
-  font-size:16px;
-  font-weight:bold;
-  transition:0.1s;
-}
-
+/* ボタンのベース（各ページの <style> で上書きしてOK） */
 button {
-  background:#ff99cc;
-  color:white;
-  border:none;
-  box-shadow:0 3px 6px rgba(0,0,0,0.15);
+  font-family: inherit;
+  cursor: pointer;
 }
 
-button:hover {
-  background:#ff82bf;
-  transform:translateY(-1px);
-}
-
-/* ================================
-   試合カード
-================================ */
-.match-round {
-  padding:18px;
-  border-radius:18px;
-  border:2px solid #ffd3ec;
-  margin-bottom:18px;
-  background:white;
-
-  /* ★ パネル感強化 */
-  box-shadow:0 4px 12px rgba(0,0,0,0.15);
-}
-
-.match-card {
-  padding:14px;
-  margin-bottom:10px;
-  border-radius:14px;
-  background:#fff6fc;
-  border:1px solid #ffb3d9;
-
-  /* ★ カード感 */
-  box-shadow:0 2px 6px rgba(0,0,0,0.12);
-}
-
-/* ================================
-   プレイヤーテーブル
-================================ */
+/* テーブル（プレイヤーステータスで使用） */
 table {
-  width:100%;
-  border-collapse:collapse;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 6px;
+}
+
+th, td {
+  padding: 8px;
+  font-size: 14px;
 }
 
 th {
-  background:#ffe0f4;
-  padding:10px;
-  font-weight:bold;
-  border-bottom:2px solid #ff99cc;
+  background: #ffe0f4;
 }
 
 td {
-  padding:10px;
-  border-bottom:1px solid #ffd3ec;
-  background:white;
+  background: #ffffff;
+  border-bottom: 1px solid #ffd3ec;
 }
 
-/* ================================
-   参加者チェック画面 用
-================================ */
-.checkbox-line {
-  background:#ffe6f3;
-  padding:14px;
-  border-radius:14px;
-  margin-bottom:12px;
-  border:2px solid #ffb3d9;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+/* 試合カード系（index.html の中で追加スタイルもある） */
+.match-round {
+  margin-bottom: 14px;
 }
 
-.start-select {
-  margin-top:6px;
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:2px solid #ffb3d9;
-  background:white;
+.match-card {
+  margin-bottom: 8px;
+}
+
+/* 入力欄のベース */
+input[type="text"],
+input[type="number"],
+select {
+  box-sizing: border-box;
+}
+
+/* スマホ向けちょい調整 */
+@media (min-width: 768px) {
+  body {
+    max-width: 640px;
+    margin: 0 auto;
+  }
 }
