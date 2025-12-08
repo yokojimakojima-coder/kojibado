@@ -1,51 +1,47 @@
-/* ======================================================
-   基本
-====================================================== */
+/* =========================================================
+   全体デザイン
+========================================================= */
+
 body {
   font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
   background: #fff9fe;
   margin: 0;
-  padding: 16px;
-}
-
-/* ======================================================
-   見出し
-====================================================== */
-h1 {
-  text-align: center;
-  font-size: 48px;
-  font-weight: 900;
-  margin: 12px 0;
-  color: #ff66b3;
-  text-shadow: 2px 2px #ffd6eb;
+  padding: 0;
 }
 
 h2 {
-  font-size: 22px;
+  margin: 0 0 12px 0;
   border-left: 6px solid #ff66b3;
   padding-left: 8px;
-  margin-bottom: 10px;
-  color: #ff3399;
+  font-size: 22px;
+  color: #ff66b3;
+  font-weight: 800;
 }
 
-/* ======================================================
-   ナビゲーション
-====================================================== */
+/* =========================================================
+   ナビゲーションバー
+========================================================= */
+
 .top-nav {
   display: flex;
+  width: 100%;
   gap: 6px;
-  margin-bottom: 16px;
+  background: #ffe6f3;
+  padding: 10px;
+  box-sizing: border-box;
+  border-bottom: 2px solid #ffb3d9;
 }
 
 .top-nav a {
   flex: 1;
-  background: #ff99cc;
-  color: white;
   text-align: center;
+  background: #ff99cc;
   padding: 12px;
-  border-radius: 12px;
-  font-weight: bold;
+  border-radius: 10px;
   text-decoration: none;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
   box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
 
@@ -53,79 +49,98 @@ h2 {
   background: #ff66b3;
 }
 
-/* ======================================================
-   パネル
-====================================================== */
-.panel {
-  background: white;
+/* =========================================================
+   共通ブロック（カード風）
+========================================================= */
+
+.setting-block {
+  background: #ffffff;
   padding: 16px;
   border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   border: 2px solid #ffd3ec;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  margin-bottom: 18px;
+  margin: 16px;
 }
 
-/* ======================================================
-   セレクト / 入力
-====================================================== */
+/* =========================================================
+   フォーム系
+========================================================= */
+
+label {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ff66b3;
+  display: block;
+  margin-top: 10px;
+}
+
 select, input[type="text"] {
   width: 100%;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 2px solid #ffb3d9;
-  background: #fff6fc;
+  background: #ffe6f3;
   font-size: 16px;
+  box-sizing: border-box;
   margin-top: 6px;
-  margin-bottom: 10px;
 }
 
-input:focus, select:focus {
-  outline: none;
-  border-color: #ff66b3;
-  background: #ffeaf7;
-}
-
-/* ======================================================
-   ボタン
-====================================================== */
 button {
   width: 100%;
   padding: 14px;
-  font-size: 18px;
-  margin-top: 10px;
-  font-weight: bold;
-  color: white;
   border: none;
   border-radius: 12px;
-  cursor: pointer;
   background: #ff99cc;
-  transition: 0.2s;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 12px;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
 }
 
 button:hover {
   background: #ff66b3;
 }
 
-.green { background: #8ee38e !important; }
-.green:hover { background: #5ac55a !important; }
+/* =========================================================
+   試合カード
+========================================================= */
 
-.red { background: #ff6675 !important; }
-.red:hover { background: #ff334f !important; }
+.match-round {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid #ffd3ec;
+  margin: 16px;
+}
 
-.pink { background: #ff99cc !important; }
-.pink:hover { background: #ff6fba !important; }
+.match-round h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 20px;
+  color: #ff66b3;
+}
 
-/* ======================================================
-   名簿・参加者チェックリスト
-====================================================== */
+.match-card {
+  background: #fff6fc;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ffb3d9;
+  margin-bottom: 10px;
+}
+
+/* =========================================================
+   名簿管理・参加者チェック
+========================================================= */
+
 .list-item {
   background: #ffe6f3;
-  padding: 14px;
-  border-radius: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
   border: 2px solid #ffb3d9;
-  font-size: 20px;
-  margin-bottom: 12px;
-
+  font-size: 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -133,51 +148,35 @@ button:hover {
 
 .list-item label {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 10px;
+  cursor: pointer;
 }
 
 .drag {
   font-size: 22px;
-  color: #ff66b3;
   cursor: grab;
+  color: #ff66b3;
 }
 
-/* ラウンド設定（from〜to 部分） */
-.range-box {
-  margin-top: 8px;
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 10px;
-  border: 1px solid #ffb3d9;
+.del-btn {
+  background: #ff6675;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-/* ======================================================
-   試合カード
-====================================================== */
-.match-round {
-  background: white;
-  padding: 16px;
-  border-radius: 14px;
-  border: 2px solid #ffd3ec;
-  margin-bottom: 18px;
+.del-btn:hover {
+  background: #ff334d;
 }
 
-.match-card {
-  background: #fff6fc;
-  border: 2px solid #ffb3d9;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 12px;
-}
+/* =========================================================
+   テーブル（ステータス）
+========================================================= */
 
-.match-card p {
-  margin: 4px 0;
-}
-
-/* ======================================================
-   テーブル（プレイヤーステータス）
-====================================================== */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -187,11 +186,21 @@ table {
 th {
   background: #ffe0f4;
   padding: 10px;
-  border-bottom: 2px solid #ffb3d9;
+  border-bottom: 2px solid #ffd3ec;
+  font-size: 16px;
 }
 
 td {
   padding: 10px;
-  background: #fff;
+  background: white;
   border-bottom: 1px solid #ffd3ec;
+  text-align: center;
+}
+
+/* =========================================================
+   次の試合ボタンのエリア
+========================================================= */
+
+#nextRoundContainer {
+  padding: 0 16px 30px;
 }
