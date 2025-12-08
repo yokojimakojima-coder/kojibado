@@ -1,463 +1,300 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>コジバド!! 試合作成</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#ff66b3">
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
-      background: #fff9fe;
-      margin: 0;
-      padding: 16px;
-    }
-    h1 {
-      text-align: center;
-      font-size: 36px;
-      margin: 8px 0 16px;
-      color: #ff66b3;
-      text-shadow: 2px 2px #ffd6eb;
-    }
-    .top-nav {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 16px;
-    }
-    .top-nav a {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      background: #ff99cc;
-      color: #fff;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      font-size: 14px;
-    }
-    .top-nav a.active { background: #ff66b3; }
+<meta charset="UTF-8">
+<title>コジバド!! - 試合作成</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<meta name="theme-color" content="#ff66b3">
 
-    .block {
-      background: #fff;
-      border-radius: 12px;
-      padding: 14px;
-      border: 2px solid #ffd3ec;
-      margin-bottom: 18px;
-    }
-    h2 {
-      margin: 0 0 10px;
-      border-left: 6px solid #ff66b3;
-      padding-left: 8px;
-      font-size: 20px;
-    }
-    .label-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-    select, input[type="number"] {
-      padding: 6px 8px;
-      border-radius: 8px;
-      border: 1px solid #ffb3d9;
-      background: #ffe6f3;
-      font-size: 14px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      border-radius: 12px;
-      border: none;
-      font-weight: bold;
-      font-size: 16px;
-      margin-top: 10px;
-      cursor: pointer;
-      color: #fff;
-      background: #ff99cc;
-    }
-    button:hover { filter: brightness(1.05); }
+<style>
+h1 {
+  text-align:center;
+  font-size:42px;
+  font-weight:900;
+  color:#ff66b3;
+  text-shadow:2px 2px #ffd6eb;
+  margin:10px 0 20px;
+}
 
-    .match-round {
-      padding: 12px;
-      margin-bottom: 14px;
-      border-radius: 12px;
-      background: #ffffff;
-      border: 2px solid #ffd3ec;
-    }
-    .match-round h3 {
-      margin: 0 0 8px;
-      font-size: 18px;
-      color: #ff66b3;
-    }
+.setting-block {
+  background:#fff;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:20px;
+  border:2px solid #ffd3ec;
+}
 
-    .match-card {
-      background: #fff6fc;
-      border: 1px solid #ffb3d9;
-      border-radius: 10px;
-      padding: 8px 10px;
-      margin-bottom: 6px;
-      font-size: 14px;
-    }
-    .match-card b { color: #ff66b3; }
+.match-round {
+  background:#fff;
+  border:2px solid #ffd3ec;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:25px;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    th, td {
-      padding: 6px 4px;
-      border-bottom: 1px solid #ffd3ec;
-      text-align: center;
-    }
-    th {
-      background: #ffe0f4;
-    }
+.match-card {
+  background:#fff6fc;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ffb3d9;
+  margin-bottom:10px;
+}
 
-    .small-label {
-      font-size: 12px;
-      color: #666;
-    }
-  </style>
+button {
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:10px;
+  background:#ff99cc;
+  color:white;
+  font-size:18px;
+  font-weight:bold;
+  margin-top:10px;
+}
+
+button:hover {
+  background:#ff66b3;
+}
+</style>
 </head>
+
 <body>
 
 <h1>コジバド!!</h1>
 
+<!-- ナビ -->
 <div class="top-nav">
-  <a href="players.html">名前管理</a>
+  <a href="players.html">名簿管理</a>
   <a href="attendance.html">参加者チェック</a>
-  <a href="index.html" class="active">試合作成</a>
+  <a class="active" href="index.html">試合作成</a>
 </div>
 
 <!-- 試合設定 -->
-<div class="block">
+<div class="setting-block">
   <h2>試合設定</h2>
 
-  <div class="label-row">
-    <span>現在ラウンド：<b id="roundLabel">第 1 試合</b></span>
-  </div>
+  <label>コート数</label>
+  <select id="courtsSelect">
+    <option value="1">1コート</option>
+    <option value="2">2コート</option>
+    <option value="3">3コート</option>
+    <option value="4">4コート</option>
+  </select>
 
-  <div class="label-row">
-    <label>コート数：</label>
-    <select id="courtsSelect">
-      <option value="1">1コート</option>
-      <option value="2">2コート</option>
-      <option value="3">3コート</option>
-      <option value="4">4コート</option>
-    </select>
-  </div>
-
-  <button id="nextBtn">次の試合を作成（1試合ぶん）</button>
-  <button id="resetBtn">最初からやり直す（今日の参加者でリセット）</button>
+  <button id="setupBtn">参加者を読み込み → 第1試合を作成</button>
 </div>
 
-<!-- 途中参加 / 途中抜け -->
-<div class="block">
-  <h2>途中参加 / 途中抜けの設定</h2>
-  <p class="small-label">
-    ※ここで設定しても、<b>すでに作った過去の試合はそのまま</b>で、<br>
-    これから作る試合にだけ反映されるよ。
-  </p>
+<!-- 途中参加 & 途中抜け -->
+<div class="setting-block">
+  <h2>途中参加 / 途中抜け</h2>
 
-  <div class="label-row">
-    <b>途中参加を追加</b>
-  </div>
-  <div class="label-row">
-    <label>名前：</label>
-    <select id="lateJoinName"></select>
+  <label>選手を選択</label>
+  <select id="changePlayer"></select>
 
-    <label>第</label>
-    <input type="number" id="lateJoinRound" min="1" value="1" style="width:70px;">
-    <label>試合目から参加</label>
-  </div>
-  <button id="lateJoinBtn">途中参加として登録</button>
+  <label>状態を選択</label>
+  <select id="changeType">
+    <option value="join">途中参加（この試合から参加）</option>
+    <option value="leave">途中抜け（この試合までで終了）</option>
+  </select>
 
-  <hr style="margin:12px 0; border:none; border-top:1px dashed #ffd3ec;">
-
-  <div class="label-row">
-    <b>途中抜けを登録</b>
-  </div>
-  <div class="label-row">
-    <label>名前：</label>
-    <select id="leaveName"></select>
-
-    <label>第</label>
-    <input type="number" id="leaveRound" min="1" value="1" style="width:70px;">
-    <label>試合目まで参加（その後は出ない）</label>
-  </div>
-  <button id="leaveBtn">途中抜けとして登録</button>
+  <button id="applyChangeBtn">変更を適用</button>
 </div>
 
 <!-- 試合履歴 -->
-<div id="rounds" class="block">
+<div id="rounds" class="setting-block">
   <h2>試合履歴</h2>
-  <p id="noRoundMsg">まだ試合が作成されていません。</p>
+  <p id="noRoundMsg">まだ試合がありません。</p>
 </div>
 
+<!-- 次の試合ボタン（最新試合の下に自動移動） -->
+<div id="nextRoundContainer"></div>
+
 <!-- ステータス -->
-<div id="playerSummary" class="block">
+<div id="playerSummary" class="setting-block" style="display:none;">
   <h2>プレイヤーステータス</h2>
   <div id="playerTable"></div>
 </div>
 
 <script src="common.js"></script>
+
 <script>
-  const MAX_ROUND = 9999;
+/* ===============================
+   index.html メイン処理
+=============================== */
 
-  let players = [];
-  let roundNumber = 1;
-  let schedule = {};
+let players = [];
+let roundNumber = 1;
+let schedule = {}; // { 名前: [ {from,to}, ... ] }
 
-  window.onload = () => {
-    initFromStorage();
+window.onload = () => {
+  schedule = getSchedule();
+  document.getElementById("setupBtn").onclick = firstRound;
+  document.getElementById("applyChangeBtn").onclick = applyChange;
+};
 
-    document.getElementById("nextBtn").onclick = createNextRound;
-    document.getElementById("resetBtn").onclick = initFromStorage;
-
-    document.getElementById("lateJoinBtn").onclick = addLateJoin;
-    document.getElementById("leaveBtn").onclick = addLeave;
-  };
-
-  /* 初期化：今日の参加者＋スケジュールを読み込む */
-  function initFromStorage() {
-    const names = getActivePlayers();
-    if (names.length < 4) {
-      alert("まずは『参加者チェック』で 4人以上選んでね！");
-      return;
-    }
-
-    // スケジュール読み込み（無ければ全員 1〜MAX_ROUND 参加で作る）
-    schedule = getSchedule();
-    if (!schedule || Object.keys(schedule).length === 0) {
-      schedule = {};
-      names.forEach(n => {
-        schedule[n] = [{ from: 1, to: MAX_ROUND }];
-      });
-      saveSchedule(schedule);
-    }
-
-    // プレイヤー配列を作り直し（ステータスはリセット）
-    players = names.map((n, i) => ({
-      name: n,
-      idx: i,
-      games: 0,
-      refs: 0,
-      rests: 0,
-      lastRoundPlayed: 0,
-      lastRefRound: 0,
-      lastRestRound: 0
-    }));
-
-    roundNumber = 1;
-    document.getElementById("rounds").innerHTML =
-      '<h2>試合履歴</h2><p id="noRoundMsg">まだ試合が作成されていません。</p>';
-
-    updateRoundLabel();
-    renderPlayerTable();
-    refreshScheduleUI();
+/* -----------------------------------
+   第1試合を作成
+----------------------------------- */
+function firstRound() {
+  const active = getActivePlayers();
+  if (active.length < 4) {
+    alert("参加者は4人以上必要です！");
+    return;
   }
 
-  function updateRoundLabel() {
-    document.getElementById("roundLabel").textContent = `第 ${roundNumber} 試合`;
+  // プレイヤーデータ初期化
+  players = active.map((n, i) => ({
+    name: n,
+    idx: i,
+    games: 0,
+    refs: 0,
+    rests: 0,
+    partners: new Set(),
+    opponents: new Set(),
+    lastRoundPlayed: 0,
+    lastRefRound: 0,
+    lastRestRound: 0
+  }));
+
+  // スケジュールを全員「1試合目〜999試合目まで参加」に初期化
+  schedule = {};
+  players.forEach(p => {
+    schedule[p.name] = [{ from: 1, to: 999 }];
+  });
+  saveSchedule(schedule);
+
+  roundNumber = 1;
+
+  document.getElementById("rounds").innerHTML =
+    `<h2>試合履歴</h2>`;
+  document.getElementById("playerSummary").style.display = "block";
+
+  populateChangePlayerList();
+
+  createNextRound();
+}
+
+/* -----------------------------------
+   次の試合を作る
+----------------------------------- */
+function createNextRound() {
+  const courtCount = Number(document.getElementById("courtsSelect").value);
+
+  const result = generateRound(players, roundNumber, courtCount, getAiWeights(), schedule);
+
+  if (!result) {
+    alert("これ以上公平に作れません！");
+    return;
   }
 
-  /* 途中参加・途中抜け用セレクトを更新 */
-  function refreshScheduleUI() {
-    const all = getAllPlayers();
-    const currentNames = players.map(p => p.name);
+  renderRound(result.rounds, result.refs, result.benches);
+  renderPlayerTable();
 
-    const lateSelect = document.getElementById("lateJoinName");
-    const leaveSelect = document.getElementById("leaveName");
+  roundNumber++;
+}
 
-    lateSelect.innerHTML = "";
-    leaveSelect.innerHTML = "";
+/* -----------------------------------
+   途中参加／途中抜け
+----------------------------------- */
+function populateChangePlayerList() {
+  const select = document.getElementById("changePlayer");
+  select.innerHTML = "";
 
-    // 途中参加候補 = 名簿 - 現在の参加メンバー
-    const lateCandidates = all.filter(n => !currentNames.includes(n));
-    lateCandidates.forEach(n => {
-      const opt = document.createElement("option");
-      opt.value = opt.textContent = n;
-      lateSelect.appendChild(opt);
-    });
-    if (lateCandidates.length === 0) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "（追加候補なし）";
-      lateSelect.appendChild(opt);
-    }
+  players.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p.name;
+    opt.textContent = p.name;
+    select.appendChild(opt);
+  });
+}
 
-    // 途中抜け候補 = 現在のプレイヤー
-    players.forEach(p => {
-      const opt = document.createElement("option");
-      opt.value = opt.textContent = p.name;
-      leaveSelect.appendChild(opt);
-    });
-    if (players.length === 0) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "（メンバーなし）";
-      leaveSelect.appendChild(opt);
-    }
+function applyChange() {
+  const name = document.getElementById("changePlayer").value;
+  const type = document.getElementById("changeType").value;
 
-    // デフォルト値
-    document.getElementById("lateJoinRound").value = roundNumber;
-    document.getElementById("leaveRound").value = Math.max(1, roundNumber - 1);
+  if (!schedule[name]) schedule[name] = [{ from: 1, to: 999 }];
+
+  const lastSeg = schedule[name][schedule[name].length - 1];
+
+  if (type === "join") {
+    lastSeg.to = roundNumber - 1;
+    schedule[name].push({ from: roundNumber, to: 999 });
+
+  } else if (type === "leave") {
+    lastSeg.to = roundNumber - 1;
   }
 
-  /* 次の試合を1つ作る */
-  function createNextRound() {
-    const courtCount = Number(document.getElementById("courtsSelect").value) || 1;
-    const weights = getAiWeights();
+  saveSchedule(schedule);
 
-    const result = generateRound(players, roundNumber, courtCount, weights, schedule);
-    if (!result || !result.rounds || result.rounds.length === 0) {
-      alert("参加できる人が足りないか、これ以上公平に組めません…！");
-      return;
-    }
+  alert("変更を反映しました！次の試合作成に適用されます。");
+}
 
-    renderRound(roundNumber, result.rounds, result.refs, result.benches);
-    renderPlayerTable();
+/* -----------------------------------
+   試合表示
+----------------------------------- */
+function renderRound(rounds, refs, benches) {
+  const area = document.getElementById("rounds");
 
-    roundNumber++;
-    updateRoundLabel();
-    refreshScheduleUI();
-  }
+  const box = document.createElement("div");
+  box.className = "match-round";
 
-  /* ラウンド表示 */
-  function renderRound(rNo, rounds, refs, benches) {
-    const roundsDiv = document.getElementById("rounds");
-    const noMsg = document.getElementById("noRoundMsg");
-    if (noMsg) noMsg.remove();
+  box.innerHTML = `<h3>第 ${roundNumber} 試合</h3>`;
 
-    const box = document.createElement("div");
-    box.className = "match-round";
-
-    const h = document.createElement("h3");
-    h.textContent = `第 ${rNo} 試合`;
-    box.appendChild(h);
-
-    rounds.forEach((r, i) => {
-      const card = document.createElement("div");
-      card.className = "match-card";
-
-      const refName = players[refs[i]].name;
-      const a1 = players[r.teamA[0]].name;
-      const a2 = players[r.teamA[1]].name;
-      const b1 = players[r.teamB[0]].name;
-      const b2 = players[r.teamB[1]].name;
-
-      card.innerHTML = `
-        <p><b>コート${i + 1}</b>（審判：${refName}）</p>
-        <p>Team A：${a1} ＆ ${a2}</p>
-        <p>Team B：${b1} ＆ ${b2}</p>
-      `;
-      box.appendChild(card);
-    });
-
-    if (benches && benches.length > 0) {
-      const p = document.createElement("p");
-      p.textContent = "休憩：" +
-        benches.map(i => players[i].name).join(" / ");
-      box.appendChild(p);
-    }
-
-    roundsDiv.appendChild(box);
-  }
-
-  /* ステータス表示 */
-  function renderPlayerTable() {
-    let html = `
-      <table>
-        <tr>
-          <th>名前</th>
-          <th>試合数</th>
-          <th>審判</th>
-          <th>休憩</th>
-        </tr>
+  rounds.forEach((r, i) => {
+    const card = document.createElement("div");
+    card.className = "match-card";
+    card.innerHTML = `
+      <p><b>コート${i+1}</b>（審判：${players[refs[i]].name}）</p>
+      <p>Team A：${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}</p>
+      <p>Team B：${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}</p>
     `;
+    box.appendChild(card);
+  });
 
-    players.forEach(p => {
-      html += `
-        <tr>
-          <td>${p.name}</td>
-          <td>${p.games}</td>
-          <td>${p.refs}</td>
-          <td>${p.rests}</td>
-        </tr>
-      `;
-    });
-
-    html += "</table>";
-    document.getElementById("playerTable").innerHTML = html;
+  if (benches.length > 0) {
+    box.innerHTML += `<p>休憩：${benches.map(i => players[i].name).join(" / ")}</p>`;
   }
 
-  /* 途中参加追加 */
-  function addLateJoin() {
-    const name = document.getElementById("lateJoinName").value;
-    if (!name) {
-      alert("途中参加させる名前を選んでね");
-      return;
-    }
+  area.appendChild(box);
 
-    let r = parseInt(document.getElementById("lateJoinRound").value, 10) || roundNumber;
-    if (r < roundNumber) r = roundNumber; // 過去にはさかのぼらない
+  // 最新試合の下に「次の試合作成」ボタンを移動
+  const btnArea = document.getElementById("nextRoundContainer");
+  btnArea.innerHTML = `
+    <button onclick="createNextRound()">次の試合を作成</button>
+  `;
+}
 
-    // スケジュール更新
-    schedule[name] = [{ from: r, to: MAX_ROUND }];
-    saveSchedule(schedule);
+/* -----------------------------------
+   ステータス表示
+----------------------------------- */
+function renderPlayerTable() {
+  let html = `
+    <table>
+      <tr>
+        <th>名前</th>
+        <th>試合数</th>
+        <th>審判</th>
+        <th>休憩</th>
+      </tr>
+  `;
 
-    // まだ players にいない場合は追加
-    if (!players.some(p => p.name === name)) {
-      players.push({
-        name,
-        idx: players.length,
-        games: 0,
-        refs: 0,
-        rests: 0,
-        lastRoundPlayed: 0,
-        lastRefRound: 0,
-        lastRestRound: 0
-      });
-    }
+  players.forEach(p => {
+    html += `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.games}</td>
+        <td>${p.refs}</td>
+        <td>${p.rests}</td>
+      </tr>
+    `;
+  });
 
-    alert(`${name} さんを第 ${r} 試合目から参加にしました。`);
-    renderPlayerTable();
-    refreshScheduleUI();
-  }
+  html += "</table>";
 
-  /* 途中抜け登録 */
-  function addLeave() {
-    const name = document.getElementById("leaveName").value;
-    if (!name) {
-      alert("途中抜けさせる名前を選んでね");
-      return;
-    }
-
-    let r = parseInt(document.getElementById("leaveRound").value, 10) || (roundNumber - 1);
-    if (r < 1) r = 1;
-
-    let segs = schedule[name];
-    if (!segs || segs.length === 0) {
-      segs = [{ from: 1, to: MAX_ROUND }];
-    }
-    const last = segs[segs.length - 1];
-    if (r < last.from) {
-      // すでに今は参加していない扱い
-      last.to = last.from - 1;
-    } else {
-      last.to = r;
-    }
-    schedule[name] = segs;
-    saveSchedule(schedule);
-
-    alert(`${name} さんは第 ${r + 1} 試合目以降は参加しません。`);
-    refreshScheduleUI();
-  }
+  document.getElementById("playerTable").innerHTML = html;
+}
 </script>
+
 </body>
 </html>
