@@ -5,94 +5,95 @@
 <title>参加者チェック - コジバド!!</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
-<script defer src="common.js"></script>
+
+<style>
+body {
+  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
+  background: #fff9fe;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  font-size: 32px;
+  color: #ff66b3;
+  margin-bottom: 20px;
+}
+
+/* リスト行 */
+.list-item {
+  background: #ffe6f3;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 2px solid #ffb3d9;
+  font-size: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-item label {
+  display: flex;
+  gap: 12px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.drag {
+  font-size: 22px;
+  cursor: grab;
+  color: #ff66b3;
+}
+
+/* ボタン */
+button {
+  width: 100%;
+  padding: 15px;
+  font-size: 20px;
+  border-radius: 15px;
+  border: none;
+  font-weight: bold;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.green { background: #8ee38e; color: white; }
+.red   { background: #ff6675; color: white; }
+.pink  { background: #ff99cc; color: white; }
+</style>
 </head>
 
 <body>
 
 <h2>参加者チェック</h2>
 
-<button class="green" onclick="location.href='players.html'">名前管理へ戻る</button>
+<!-- 名簿へ戻る -->
+<button class="pink" onclick="location.href='players.html'">
+  名前管理へ戻る
+</button>
 
 <p style="text-align:center; margin-top:10px;">
-  今日来ている人にチェックを入れて、参加開始ラウンドを設定してください
+  今日来ている人にチェックを入れてください
 </p>
 
-<ul id="activeList"></ul>
+<!-- 名簿読み込み領域 -->
+<ul id="activeList" style="padding-left:0; list-style:none;"></ul>
 
+<!-- ボタン群 -->
 <button class="green" onclick="checkAll()">全員 ON</button>
-<button class="red" onclick="uncheckAll()">全員 OFF</button>
+<button class="red"   onclick="uncheckAll()">全員 OFF</button>
 
 <button class="green" onclick="saveActivePlayers()">参加者を保存 → 試合作成へ</button>
 
+<script src="common.js"></script>
+
 <script>
-// ★ 名簿を参加者チェック画面に読み込む関数（必須）
-function loadPlayersToAttendance() {
-  const list = JSON.parse(localStorage.getItem("allPlayers") || "[]");
-  const active = JSON.parse(localStorage.getItem("activePlayers") || "[]");
-  const startRounds = JSON.parse(localStorage.getItem("activePlayersStartRound") || "{}");
-
-  let html = "";
-
-  list.forEach(name => {
-    const checked = active.includes(name) ? "checked" : "";
-    const start = startRounds[name] || 1;
-
-    html += `
-      <div class="checkbox-line">
-        <label>
-          <input type="checkbox" class="chk" data-name="${name}" ${checked}>
-          ${name}
-        </label>
-        <div>
-          参加開始ラウンド：
-          <select class="start-select" data-start="${name}">
-            ${[...Array(20)].map((_,i)=>`
-              <option value="${i+1}" ${start==(i+1)?"selected":""}>${i+1} 試合目</option>
-            `).join("")}
-          </select>
-        </div>
-      </div>
-    `;
-  });
-
-  document.getElementById("playerList").innerHTML = html;
-}
-
-// 全員 ON/OFF
-function checkAll(){ document.querySelectorAll(".chk").forEach(cb=>cb.checked=true); }
-function uncheckAll(){ document.querySelectorAll(".chk").forEach(cb=>cb.checked=false); }
-
-// 保存
-function saveActivePlayers() {
-  const active = [];
-  const startRounds = {};
-
-  document.querySelectorAll(".checkbox-line").forEach(box=>{
-    const cb = box.querySelector(".chk");
-    const name = cb.dataset.name;
-    const startSel = box.querySelector(".start-select").value;
-
-    if (cb.checked) active.push(name);
-    startRounds[name] = Number(startSel);
-  });
-
-  if (active.length < 4) {
-    alert("4人以上選択してください");
-    return;
-  }
-
-  localStorage.setItem("activePlayers", JSON.stringify(active));
-  localStorage.setItem("activePlayersStartRound", JSON.stringify(startRounds));
-
-  alert("保存しました！試合作成へ移動します。");
-  location.href = "index.html";
-}
-
-// ★ ページ読み込み時に名簿を表示
-window.onload = loadPlayersToAttendance;
+/* 初期読み込み */
+window.onload = () => {
+  loadPlayersToAttendance();
+};
 </script>
 
 </body>
 </html>
-
