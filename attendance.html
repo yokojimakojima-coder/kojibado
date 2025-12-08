@@ -2,82 +2,148 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>参加者チェック - コジバド!!</title>
+<title>参加チェック - コジバド!!</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
 
 <style>
-.list-item {
-  background: #ffe6f3;
-  padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  border: 2px solid #ffb3d9;
-  font-size: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+h1 {
+  text-align:center;
+  font-size:42px;
+  font-weight:900;
+  color:#ff66b3;
+  text-shadow:2px 2px #ffd6eb;
+  margin:10px 0 20px;
 }
-.list-item label {
-  display: flex;
-  gap: 12px;
-  font-size: 20px;
-  cursor: pointer;
+
+.player-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid #ffd3ec;
+  background:#fff;
+  margin-bottom:6px;
 }
-.drag {
-  font-size: 22px;
-  cursor: grab;
-  color: #ff66b3;
+
+.player-row label {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:18px;
+}
+
+.player-row input[type="checkbox"] {
+  width:20px;
+  height:20px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>参加者チェック</h1>
+<h1>参加チェック</h1>
 
 <div class="top-nav">
   <a href="players.html">名簿管理</a>
-  <a class="active" href="attendance.html">参加者チェック</a>
+  <a class="active" href="attendance.html">参加チェック</a>
   <a href="index.html">試合作成</a>
 </div>
 
-<p style="text-align:center; margin:10px 0 20px;">
-  今日来ている人にチェックを入れてください
-</p>
-
-<div class="block">
-  <ul id="activeList" style="list-style:none; padding-left:0;"></ul>
+<div class="setting-block">
+  <p>今日来ている人にチェックを入れてください</p>
+  <div id="playerList"></div>
 </div>
 
-<button class="btn-green" onclick="checkAll()">全員 ON</button>
-<button class="btn-red" onclick="uncheckAll()">全員 OFF</button>
-
-<button class="btn-pink" onclick="saveActivePlayers()">参加者を保存 → 試合作成へ</button>
-
-<script src="common.js"></script>
+<div class="setting-block">
+  <button onclick="checkAll()" style="background:#90ee90;">全員 ON</button>
+  <button onclick="uncheckAll()" style="background:#ff7f7f;">全員 OFF</button>
+  <button onclick="saveActiveAndGo()" style="margin-top:15px;">参加者を保存 → 試合作成へ</button>
+</div>
 
 <script>
 /* ===============================
-   初期処理
+   localStorage から名簿と参加者取得
 =============================== */
-window.onload = () => {
-  loadPlayersToAttendance();
-};
+function getAllPlayers() {
+  return JSON.parse(localStorage.getItem("allPlayers") || "[]");
+}
+
+function getActivePlayers() {
+  return JSON.parse(localStorage.getItem("activePlayers") || "[]");
+}
+
+function setActivePlayers(list) {
+  localStorage.setItem("activePlayers", JSON.stringify(list));
+}
 
 /* ===============================
-   全員 ON
+   画面に名簿を並べる
+=============================== */
+function loadAttendancePage() {
+  const container = document.getElementById("playerList");
+  container.innerHTML = "";
+
+  const all = getAllPlayers();
+  const active = getActivePlayers();
+
+  if (all.length === 0) {
+    container.innerHTML = "<p>名簿がまだありません。先に『名簿管理』で登録してね。</p>";
+    return;
+  }
+
+  all.forEach(name => {
+    const row = document.createElement("div");
+    row.className = "player-row";
+
+    const checked = active.includes(name) ? "checked" : "";
+
+    row.innerHTML = `
+      <label>
+        <input type="checkbox" class="att-check" data-name="${name}" ${checked}>
+        <span>${name}</span>
+      </label>
+    `;
+
+    container.appendChild(row);
+  });
+}
+
+/* ===============================
+   全員 ON / OFF
 =============================== */
 function checkAll() {
-  document.querySelectorAll(".chk").forEach(cb => cb.checked = true);
+  document.querySelectorAll(".att-check").forEach(cb => cb.checked = true);
+}
+
+function uncheckAll() {
+  document.querySelectorAll(".att-check").forEach(cb => cb.checked = false);
 }
 
 /* ===============================
-   全員 OFF
+   保存 → 試合作成へ
 =============================== */
-function uncheckAll() {
-  document.querySelectorAll(".chk").forEach(cb => cb.checked = false);
+function saveActiveAndGo() {
+  const selected = [];
+  document.querySelectorAll(".att-check").forEach(cb => {
+    if (cb.checked) selected.push(cb.dataset.name);
+  });
+
+  if (selected.length < 4) {
+    alert("試合を組むには最低4人必要だよ！");
+    // でも一応保存はしておく
+  }
+
+  setActivePlayers(selected);
+  alert("今日の参加メンバーを保存したよ！");
+  location.href = "index.html";
 }
+
+/* ===============================
+   初期ロード
+=============================== */
+window.onload = loadAttendancePage;
 </script>
 
 </body>
