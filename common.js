@@ -41,11 +41,11 @@ function getAvailablePlayerIndexes(players, roundNumber, schedule) {
 
 function getAiWeights() {
   return {
-    partnerBias: 15,    // 🔥 ペアの重複を強く避ける
-    opponentBias: 12,   // 🔥 対戦の重複も強く避ける
-    fatigueBias: 1.2,   // 最近出てない人を優先
-    refBias: 2.0,       // 審判偏り防止
-    restBias: 2.0       // 休憩偏り防止
+    partnerBias: 15,
+    opponentBias: 12,
+    fatigueBias: 1.2,
+    refBias: 2.0,
+    restBias: 2.0,
   };
 }
 
@@ -105,29 +105,28 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
     used.add(refIndex);
     finalFour.forEach(i => used.add(i));
 
-    // 試合数カウント
     players[refIndex].refs++;
     players[refIndex].lastRefRound = roundNumber;
 
     finalFour.forEach(i => {
       players[i].games++;
       players[i].lastRoundPlayed = roundNumber;
-
-      // ここでペア・対戦の履歴が蓄積される（重要）
-      updateHistory(players, teamA, teamB);
     });
+
+    updateHistory(players, teamA, teamB);
   }
 
   const restPlayers = activeIdx.filter(i => !used.has(i));
   restPlayers.forEach(i => {
     players[i].rests++;
+    players[i].lastRestRound = roundNumber;
   });
 
   return { rounds, refs, benches: restPlayers };
 }
 
 /* ======================================================
-   ペア/対戦 履歴更新
+   ペア/対戦 履歴更新（Set には idx を入れる）
 ====================================================== */
 
 function updateHistory(players, teamA, teamB) {
@@ -136,10 +135,8 @@ function updateHistory(players, teamA, teamB) {
     [teamB[0], teamB[1]]
   ];
   const opponents = [
-    [teamA[0], teamB[0]],
-    [teamA[0], teamB[1]],
-    [teamA[1], teamB[0]],
-    [teamA[1], teamB[1]]
+    [teamA[0], teamB[0]], [teamA[0], teamB[1]],
+    [teamA[1], teamB[0]], [teamA[1], teamB[1]]
   ];
 
   pairs.forEach(([x, y]) => {
@@ -160,37 +157,24 @@ function updateHistory(players, teamA, teamB) {
 function calcGroupScore(players, group, round, w) {
   let score = 0;
 
-  // ペア重複・対戦重複の減点
-  const pA = players[group[0]];
-  const pB = players[group[1]];
-  const pC = players[group[2]];
-  const pD = players[group[3]];
+  const a = group[0], b = group[1], c = group[2], d = group[3];
 
-  const pairs = [
-    [pA, pB],
-    [pC, pD]
-  ];
+  // ペア被り
+  if (players[a].partners.has(b)) score -= w.partnerBias;
+  if (players[c].partners.has(d)) score -= w.partnerBias;
 
-  const opp = [
-    [pA, pC], [pA, pD],
-    [pB, pC], [pB, pD]
-  ];
-
-  pairs.forEach(([x, y]) => {
-    if (x.partners.has(y.idx)) score -= w.partnerBias;
-  });
-
-  opp.forEach(([x, y]) => {
-    if (x.opponents.has(y.idx)) score -= w.opponentBias;
-  });
+  // 対戦被り
+  if (players[a].opponents.has(c)) score -= w.opponentBias;
+  if (players[a].opponents.has(d)) score -= w.opponentBias;
+  if (players[b].opponents.has(c)) score -= w.opponentBias;
+  if (players[b].opponents.has(d)) score -= w.opponentBias;
 
   // 出場間隔
   group.forEach(i => {
-    const p = players[i];
-    score -= (round - p.lastRoundPlayed) * w.fatigueBias;
+    score -= (round - players[i].lastRoundPlayed) * w.fatigueBias;
   });
 
-  return score + Math.random() * 0.01; // 少しだけランダム
+  return score + Math.random() * 0.01;
 }
 
 /* ======================================================
