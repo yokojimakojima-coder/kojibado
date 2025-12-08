@@ -1,0 +1,104 @@
+/*  
+============================
+   全ページ共通スタイル
+============================
+*/
+
+body {
+  font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+  margin: 16px;
+  background: #fafafa;
+  font-size: 17px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+
+/* ------- ブロックBOX ------- */
+.block {
+  background: white;
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  border: 1px solid #ddd;
+}
+
+/* ------- ボタン ------- */
+button, .link-btn {
+  width: 100%;
+  padding: 12px;
+  background: #4CAF50;
+  color: white;
+  text-align: center;
+  border: none;
+  border-radius: 6px;
+  font-size: 18px;
+  margin-top: 8px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+button:active, .link-btn:active {
+  opacity: 0.7;
+}
+
+/* ------- 削除ボタン ------- */
+.del-btn {
+  background: #F44336;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  color: white;
+  margin-left: auto;
+}
+
+/* ------- リスト ------- */
+ul.sortable {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-item {
+  background: #fff;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+}
+
+.list-item label {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+}
+
+.drag {
+  font-size: 20px;
+  margin-left: 10px;
+  cursor: grab;
+}
+
+.name {
+  margin-left: 8px;
+  font-size: 17px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+th {
+  background: #eee;
+}

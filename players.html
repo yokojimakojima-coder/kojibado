@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>名簿管理</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+
+<h1>名簿管理</h1>
+
+<div class="block">
+  <h2>名前を追加</h2>
+  <input type="text" id="newPlayer" placeholder="名前を入力">
+  <button onclick="addPlayer()">追加</button>
+</div>
+
+<div class="block">
+  <h2>登録名簿（並び替え可能）</h2>
+  <ul id="playerList" class="sortable"></ul>
+</div>
+
+<button onclick="savePlayers()" class="save-btn">保存</button>
+
+<a href="attendance.html" class="link-btn">当日の参加者を選ぶ →</a>
+
+<script>
+window.onload = () => {
+  loadPlayers();
+  new Sortable(playerList, { animation: 150 });
+};
+</script>
+
+</body>
+</html>

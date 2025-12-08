@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>バドミントン試合作成（実名対応AI）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<script src="common.js"></script>
+</head>
+<body>
+
+<h1>バドミントン組み合わせ（AIモード）</h1>
+
+<div class="block">
+  <h2>AIモード</h2>
+  <select id="aiMode">
+    <option value="D">D：全部バランス（おすすめ）</option>
+    <option value="A">A：最強公平型</option>
+    <option value="B">B：ペア重視型</option>
+    <option value="C">C：体力重視型</option>
+    <option value="ML">ML：機械学習（おまかせAI）</option>
+  </select>
+</div>
+
+<div class="block">
+  <h2>コート数</h2>
+  <input id="courtsInput" type="number" min="1" value="1">
+</div>
+
+<button id="setupBtn">参加者を読み込み / 20試合自動生成</button>
+
+<div id="rounds" class="block">
+  <h2>試合履歴</h2>
+</div>
+
+<button id="addBtn" style="display:none;">試合を追加</button>
+
+<div id="playerSummary" class="block" style="display:none;">
+  <h2>プレイヤーステータス</h2>
+  <div id="playerTable"></div>
+</div>
+
+<script>
+
+// ========== 共通データ読込 ==========
+let players = [];
+let roundNumber = 1;
+let currentAiMode = "D";
+
+// index.html ロード時
+window.onload = () => {
+  const aiModeSelect = document.getElementById("aiMode");
+  aiModeSelect.onchange = () => currentAiMode = aiModeSelect.value;
+
+  document.getElementById("setupBtn").onclick = setupAndGenerate20;
+  document.getElementById("addBtn").onclick = () => addRound();
+};
+
+// ▼▼ セットアップ + 20試合自動生成 ▼▼
+function setupAndGenerate20() {
+  const names = JSON.parse(localStorage.getItem("activePlayers") || "[]");
+  if (names.length < 4) {
+    alert("参加者が4人以上必要です！");
+    return;
+  }
+
+  players = names.map((n, idx) => ({
+    name: n,
+    games: 0,
+    refs: 0,
+    rests: 0,
+    partners: new Set(),
+    opponents: new Set(),
+    lastRoundPlayed: 0,
+    lastRefRound: 0,
+    lastRestRound: 0,
+    idx
+  }));
+
+  roundNumber = 1;
+
+  document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
+  document.getElementById("playerSummary").style.display = "block";
+  renderPlayerTable();
+
+  document.getElementById("addBtn").style.display = "block";
+
+  // 20試合自動生成
+  const courts = parseInt(document.getElementById("courtsInput").value, 10);
+  for (let i = 0; i < 20; i++) {
+    const ok = createNextRound(courts);
+    if (!ok) break;
+  }
+}
+
+// ▼▼ 追加の試合作成 ▼▼
+function addRound() {
+  const courts = parseInt(document.getElementById("courtsInput").value, 10);
+  createNextRound(courts);
+}
+
+// =========================
+//     AIウェイト調整
+// =========================
+function getAiWeights() {
+  let wPartner = 5,
+      wGame = 5,
+      wConsec = 5;
+
+  if (currentAiMode === "A") {
+    wPartner = 7; wGame = 6; wConsec = 7;
+  } else if (currentAiMode === "B") {
+    wPartner = 10; wGame = 3; wConsec = 3;
+  } else if (currentAiMode === "C") {
+    wPartner = 3; wGame = 4; wConsec = 9;
+  } else if (currentAiMode === "ML") {
+    let maxG=-999, minG=999;
+    players.forEach(p=>{
+      maxG=Math.max(maxG, p.games);
+      minG=Math.min(minG, p.games);
+    });
+    const spread = maxG - minG;
+    wGame = 4 + spread;
+    wPartner = 4 + Math.floor(players.length / 4);
+    wConsec = 6;
+  }
+
+  return { wPartner, wGame, wConsec };
+}
+
+// =========================
+//    試合作成ロジック
+// =========================
+function createNextRound(courtCount) {
+
+  const weights = getAiWeights();
+  const rounds = [];
+  const used = new Set();
+
+  const sorted = players
+    .map((p, i) => ({ idx: i, games: p.games }))
+    .sort((a,b) => a.games - b.games)
+    .map(x => x.idx);
+
+  for (let c = 0; c < courtCount; c++) {
+    const candidates = sorted.filter(i => !used.has(i));
+    if (candidates.length < 4) break;
+
+    const four = pickBestFour(candidates, weights);
+    if (!four) break;
+
+    four.forEach(i => used.add(i));
+
+    const pair = pickBestPairs(four, weights);
+    rounds.push(pair);
+  }
+
+  if (rounds.length === 0) {
+    alert("これ以上公平に組めません！");
+    return false;
+  }
+
+  const playing = new Set();
+  rounds.forEach(r => {
+    r.teamA.concat(r.teamB).forEach(i => playing.add(i));
+  });
+
+  const rest = players
+    .map((p,i)=>i)
+    .filter(i=>!playing.has(i))
+    .sort((a,b)=>players[a].refs - players[b].refs);
+
+  const refs = rest.slice(0, rounds.length);
+  const bench = rest.slice(rounds.length);
+
+  // ▼ ペア・対戦・試合数更新
+  rounds.forEach(r=>{
+    r.teamA.forEach(i=>{
+      players[i].games++;
+      players[i].lastRoundPlayed = roundNumber;
+    });
+    r.teamB.forEach(i=>{
+      players[i].games++;
+      players[i].lastRoundPlayed = roundNumber;
+    });
+
+    players[r.teamA[0]].partners.add(r.teamA[1]);
+    players[r.teamA[1]].partners.add(r.teamA[0]);
+    players[r.teamB[0]].partners.add(r.teamB[1]);
+    players[r.teamB[1]].partners.add(r.teamB[0]);
+
+    r.teamA.forEach(i=>{
+      r.teamB.forEach(j=>{
+        players[i].opponents.add(j);
+        players[j].opponents.add(i);
+      });
+    });
+  });
+
+  refs.forEach(i=>{
+    players[i].refs++;
+    players[i].lastRefRound = roundNumber;
+  });
+
+  bench.forEach(i=>{
+    players[i].rests++;
+    players[i].lastRestRound = roundNumber;
+  });
+
+  renderRound(rounds, refs, bench);
+  renderPlayerTable();
+
+  return true;
+}
+
+// =========================
+//     4人選択（AIスコア）
+// =========================
+function pickBestFour(candidates, weights) {
+  let best = null, bestScore = 999999;
+  const { wPartner, wGame, wConsec } = weights;
+
+  function scoreGroup(group) {
+    let s = 0;
+
+    const [a,b,c,d] = group;
+
+    const repeatPairs =
+      (players[a].partners.has(b)?1:0) +
+      (players[a].partners.has(c)?1:0) +
+      (players[a].partners.has(d)?1:0) +
+      (players[b].partners.has(c)?1:0) +
+      (players[b].partners.has(d)?1:0) +
+      (players[c].partners.has(d)?1:0);
+
+    s += repeatPairs * wPartner;
+
+    group.forEach(i=>{
+      s += players[i].games * wGame * 0.1;
+      if (players[i].lastRoundPlayed === roundNumber - 1) {
+        s += wConsec;
+      }
+    });
+
+    return s;
+  }
+
+  for (let i=0; i<candidates.length; i++) {
+    for (let j=i+1; j<candidates.length; j++) {
+      for (let k=j+1; k<candidates.length; k++) {
+        for (let l=k+1; l<candidates.length; l++) {
+          const g = [candidates[i], candidates[j], candidates[k], candidates[l]];
+          const s = scoreGroup(g);
+          if (s < bestScore) {
+            bestScore = s;
+            best = g;
+          }
+        }
+      }
+    }
+  }
+  return best;
+}
+
+// =========================
+//  ペア選択（AIスコア）
+// =========================
+function pickBestPairs(group, weights) {
+  const [a,b,c,d] = group;
+  const { wPartner, wConsec } = weights;
+
+  const patterns = [
+    { teamA:[a,b], teamB:[c,d] },
+    { teamA:[a,c], teamB:[b,d] },
+    { teamA:[a,d], teamB:[b,c] },
+  ];
+
+  function pairPenalty(x,y){
+    return players[x].partners.has(y) ? 1 : 0;
+  }
+
+  function scorePattern(p) {
+    let s = 0;
+
+    s += pairPenalty(p.teamA[0], p.teamA[1]) * wPartner;
+    s += pairPenalty(p.teamB[0], p.teamB[1]) * wPartner;
+
+    [...p.teamA, ...p.teamB].forEach(i=>{
+      if (players[i].lastRoundPlayed === roundNumber - 1){
+        s += wConsec * 0.5;
+      }
+    });
+
+    return s;
+  }
+
+  let best = null, bestScore = 999999;
+  patterns.forEach(p=>{
+    const s = scorePattern(p);
+    if (s < bestScore){
+      best = p; bestScore = s;
+    }
+  });
+
+  return best;
+}
+
+// =========================
+//    表示
+// =========================
+function renderRound(rounds, refs, bench) {
+  const box = document.createElement("div");
+  box.className = "block";
+
+  box.innerHTML = `<h3>第 ${roundNumber} 試合</h3>`;
+
+  let html = `
+  <table>
+    <tr>
+      <th>コート</th>
+      <th>Team A</th>
+      <th>Team B</th>
+      <th>審判</th>
+    </tr>`;
+
+  rounds.forEach((r,i)=>{
+    html += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}</td>
+        <td>${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}</td>
+        <td>${refs[i] !== undefined ? players[refs[i]].name : "-"}</td>
+      </tr>`;
+  });
+
+  html += `</table>`;
+
+  if (bench.length > 0) {
+    html += `<p>休憩：${bench.map(i=>players[i].name).join("、 ")}</p>`;
+  }
+
+  box.innerHTML += html;
+  document.getElementById("rounds").appendChild(box);
+
+  roundNumber++;
+}
+
+function renderPlayerTable() {
+  let html = `
+  <table>
+    <tr>
+      <th>名前</th>
+      <th>試合数</th>
+      <th>審判数</th>
+      <th>休憩数</
+
+</body>
+</html>

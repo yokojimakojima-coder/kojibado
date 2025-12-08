@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>参加者チェック</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+
+<h1>参加者チェック</h1>
+
+<div class="block">
+  <h2>今日の参加者（並び替え可能）</h2>
+  <ul id="activeList" class="sortable"></ul>
+</div>
+
+<button onclick="saveActivePlayers()" class="save-btn">参加者を確定</button>
+
+<a href="index.html" class="link-btn">試合作成ページへ →</a>
+
+<script>
+window.onload = () => {
+  loadPlayersToAttendance();
+  new Sortable(activeList, { animation: 150 });
+};
+</script>
+
+</body>
+</html>
