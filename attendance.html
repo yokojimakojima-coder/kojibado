@@ -1,32 +1,157 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>参加者チェック</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-<script src="common.js"></script>
+  <meta charset="UTF-8">
+  <title>参加者チェック</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body { padding: 16px; }
+    h1 { text-align: center; }
+
+    .top-nav {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .top-nav a {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      background: #4CAF50;
+      color: #fff;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+    .top-nav a.active {
+      background: #2e7d32;
+      font-weight: bold;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .btn-row button {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: none;
+      background: #4CAF50;
+      color: white;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    li {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #fafafa;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+    }
+  </style>
 </head>
 <body>
 
-<h1>参加者チェック</h1>
+  <h1>参加者チェック</h1>
 
-<div class="block">
-  <h2>今日の参加者（並び替え可能）</h2>
-  <ul id="activeList" class="sortable"></ul>
-</div>
+  <!-- ナビゲーション -->
+  <div class="top-nav">
+    <a href="players.html">名簿管理</a>
+    <a href="attendance.html" class="active">参加者チェック</a>
+    <a href="index.html">試合作成</a>
+  </div>
 
-<button onclick="saveActivePlayers()" class="save-btn">参加者を確定</button>
+  <p>参加者として「今日来ている人」にチェックを入れてください。</p>
 
-<a href="index.html" class="link-btn">試合作成ページへ →</a>
+  <div class="btn-row">
+    <button id="allOn">全員 ON</button>
+    <button id="allOff">全員 OFF</button>
+  </div>
 
-<script>
-window.onload = () => {
-  loadPlayersToAttendance();
-  new Sortable(activeList, { animation: 150 });
-};
-</script>
+  <ul id="memberList"></ul>
 
+  <button id="saveBtn" style="width:100%; margin-top:16px;">参加者を保存する</button>
+
+  <script>
+    let members = [];
+
+    window.onload = function () {
+      loadMembers();
+      renderList();
+
+      document.getElementById("allOn").onclick = checkAll;
+      document.getElementById("allOff").onclick = uncheckAll;
+      document.getElementById("saveBtn").onclick = saveActive;
+    };
+
+    // 名簿読み込み
+    function loadMembers() {
+      members = JSON.parse(localStorage.getItem("players") || "[]");
+      if (!Array.isArray(members)) members = [];
+    }
+
+    // リスト描画（最初は全員 OFF）
+    function renderList() {
+      const ul = document.getElementById("memberList");
+      ul.innerHTML = "";
+
+      members.forEach(name => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <label>
+            <input type="checkbox" data-name="${name}">
+            ${name}
+          </label>
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    // 全員 ON
+    function checkAll() {
+      document.querySelectorAll("#memberList input[type='checkbox']")
+        .forEach(cb => cb.checked = true);
+    }
+
+    // 全員 OFF
+    function uncheckAll() {
+      document.querySelectorAll("#memberList input[type='checkbox']")
+        .forEach(cb => cb.checked = false);
+    }
+
+    // 保存（index.htmlが読む activePlayers に保存される）
+    function saveActive() {
+      const active = [];
+      document.querySelectorAll("#memberList input[type='checkbox']").forEach(cb => {
+        if (cb.checked) active.push(cb.dataset.name);
+      });
+
+      if (active.length < 4) {
+        alert("参加者は4人以上必要です！");
+        return;
+      }
+
+      localStorage.setItem("activePlayers", JSON.stringify(active));
+      alert("参加者を保存しました！");
+    }
+  </script>
 </body>
 </html>
