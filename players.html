@@ -8,62 +8,63 @@
 
 <style>
 body {
+  font-family: "Hiragino Maru Gothic ProN","Rounded Mplus 1c",sans-serif;
   background: #fff9fe;
   padding: 20px;
-  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
 }
 
 h2 {
   text-align: center;
   font-size: 32px;
-  color: #ff66b3;
   margin-bottom: 20px;
+  color: #ff66b3;
 }
 
-.input-box {
-  width: 100%;
+.input-area {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+#newPlayer {
+  flex: 1;
   padding: 12px;
   border-radius: 10px;
   border: 2px solid #ffb3d9;
-  background: #ffe6f3;
-  margin-bottom: 10px;
   font-size: 18px;
 }
 
 button {
   width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  font-weight: bold;
+  padding: 12px;
+  margin-top: 10px;
   font-size: 18px;
-  cursor: pointer;
-  margin-bottom: 10px;
+  background: #ff99cc;
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 10px;
 }
 
-.btn-pink { background: #ff99cc; color: white; }
-.btn-green { background: #8ee38e; color: white; }
-.btn-blue { background: #80bfff; color: white; }
+button:hover {
+  background: #ff66b3;
+}
 
 .list-item {
-  background: #fff6fc;
-  border: 2px solid #ffb3d9;
-  padding: 10px;
+  background: #ffe6f3;
+  padding: 12px;
   border-radius: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  border: 2px solid #ffb3d9;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.del-btn {
-  background: #ff6675;
-  padding: 6px 12px;
-  border-radius: 10px;
-  font-size: 14px;
-  color: white;
-  border: none;
-  cursor: pointer;
+.drag {
+  font-size: 22px;
+  color: #ff66b3;
 }
 </style>
 </head>
@@ -72,18 +73,22 @@ button {
 
 <h2>名前管理</h2>
 
-<input id="newPlayer" class="input-box" placeholder="名前を入力（例：コジコジ）">
+<!-- 入力欄 ＋ 追加ボタン -->
+<div class="input-area">
+  <input id="newPlayer" type="text" placeholder="名前を入力（例：コジコジ）">
+  <button onclick="addPlayer()">追加</button>
+</div>
 
-<button class="btn-pink" onclick="addPlayer()">追加</button>
-<button class="btn-green" onclick="savePlayers()">保存</button>
-<button class="btn-blue" onclick="location.href='attendance.html'">当日の参加者を選ぶ →</button>
+<button onclick="savePlayers()">保存</button>
+<button onclick="location.href='attendance.html'">当日の参加者を選ぶ →</button>
 
-<!-- 🔥 ここが無かったのがバグの原因！ -->
-<ul id="playerList" style="list-style:none; padding-left:0; margin-top:20px;"></ul>
+<ul id="playerList" style="padding-left:0; list-style:none;"></ul>
 
 <script src="common.js"></script>
 <script>
-window.onload = loadPlayers;
+window.onload = () => {
+  loadPlayers();
+};
 </script>
 
 </body>
