@@ -10,7 +10,31 @@
 
   <style>
     /* 追加の見た目調整（既存のstyle.cssに足す感じ） */
+.kojibado-title {
+  font-size: 40px;
+  font-weight: 900;
+  text-align: center;
+  margin: 10px 0 20px 0;
+  font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", sans-serif;
+  letter-spacing: 2px;
 
+  /* ポップなカラフルグラデーション */
+  background: linear-gradient(90deg,
+    #ff6ec4,
+    #ff9a44,
+    #f3d33f,
+    #4fd1c5,
+    #7b5bff
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* 影で立体感 */
+  text-shadow: 0 3px 6px rgba(0,0,0,0.2);
+
+  /* ぷっくり感（少しだけ） */
+  transform: skew(-2deg);
+}
     .top-nav {
       display: flex;
       gap: 6px;
@@ -562,4 +586,5 @@
   </script>
 </body>
 </html>
+
 
