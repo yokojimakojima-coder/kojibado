@@ -10,7 +10,7 @@
 
 <style>
 /* ======================================
-   ★ コジバド!! アニメーションタイトル
+   ★ コジバド!! アニメーションタイトル（完全安定版）
    ====================================== */
 .kojibado-title {
     text-align: center;
@@ -34,47 +34,50 @@
     color: transparent;
 
     animation:
-      fadeSlide 1.5s ease-out forwards,
-      rainbow 7s infinite linear,
-      shakeRotate 2s infinite ease-in-out;
+       fadeSlide 1.5s ease-out forwards,
+       rainbow 7s infinite linear,
+       shakeRotate 2s infinite ease-in-out;
+
+    will-change: transform;
 }
 
-/* !! だけ bouncing */
+/* !! だけ独立レイヤー（transform 競合回避済み） */
 .kojibado-title .bang {
     display: inline-block;
-    animation: bounceY 0.8s infinite ease-in-out;
+    position: relative;
+    animation: bangBounce 0.8s infinite ease-in-out;
+    will-change: transform;
 }
 
-/* ふわっと登場 */
+/* 親タイトルのゆれ（回転のみ） */
+@keyframes shakeRotate {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(1.4deg); }
+}
+
+/* タイトルの登場アニメ */
 @keyframes fadeSlide {
   0% { opacity: 0; transform: translateY(-30px) scale(0.9); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 虹色グラデ */
+/* 虹色に変化 */
 @keyframes rainbow {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-/* タイトル軽く揺らす */
-@keyframes shakeRotate {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(1.4deg); }
-}
-
-/* !! の上下 */
-@keyframes bounceY {
+/* !! 上下バウンド専用（親と競合しない） */
+@keyframes bangBounce {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
+  50% { transform: translateY(-14px); }
 }
 
 
 /* ======================================
-   UI・ボタン・ブロックデザイン
+   UI・レイアウト（そのまま動作OK）
    ====================================== */
-
 body {
   font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
   background: #fff9fe;
@@ -82,7 +85,6 @@ body {
   margin: 0;
 }
 
-/* ナビバー */
 .top-nav {
   display: flex;
   gap: 6px;
@@ -104,7 +106,6 @@ body {
   background: #ff66b3;
 }
 
-/* ブロック */
 .block {
   background: #ffffff;
   padding: 14px;
@@ -120,7 +121,6 @@ h2 {
   font-size: 22px;
 }
 
-/* 選択行 */
 .select-row {
   display: flex;
   gap: 10px;
@@ -145,7 +145,6 @@ button:hover {
   background: #ff82bf;
 }
 
-/* 試合カード */
 .match-round {
   padding: 14px;
   margin-bottom: 16px;
@@ -161,7 +160,6 @@ button:hover {
   border: 1px solid #ffb3d9;
 }
 
-/* ステータス */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -178,10 +176,9 @@ td {
 </style>
 </head>
 
-
 <body>
 
-<!-- ★ アニメタイトル ★ -->
+<!-- ★ コジバド!! タイトル（完全版）★ -->
 <h1 class="kojibado-title">
   コジバド<span class="bang">!!</span>
 </h1>
@@ -193,7 +190,7 @@ td {
   <a href="index.html" class="active">試合作成</a>
 </div>
 
-<!-- 設定 -->
+<!-- 設定ブロック -->
 <div class="block">
   <h2>試合設定</h2>
 
@@ -241,7 +238,7 @@ td {
 
 <script>
 /* ------------------------------
-   index.html 本体処理
+   index.js としての処理
 --------------------------------*/
 let players = [];
 let roundNumber = 1;
@@ -255,12 +252,12 @@ window.onload = () => {
   document.getElementById("addBtn").onclick = addOneRound;
 };
 
-/* AI重み（common.js を使用） */
+/* AI 重み取得 */
 function getAiWeights() {
   return getCommonAiWeights(currentAiMode, players);
 }
 
-/* 初回20試合生成 */
+/* 初回 20 試合作成 */
 function setupAndGenerate20() {
   const names = JSON.parse(localStorage.getItem("activePlayers") || "[]");
   if (names.length < 4) {
@@ -315,7 +312,7 @@ function createNextRound(courtCount) {
   return true;
 }
 
-/* 試合カード描画 */
+/* ラウンド表示 */
 function renderRound(rounds, refs, benches) {
   const roundsDiv = document.getElementById("rounds");
   const noMsg = document.getElementById("noRoundMsg");
@@ -350,7 +347,7 @@ function renderRound(rounds, refs, benches) {
   roundsDiv.appendChild(box);
 }
 
-/* プレイヤーステータス表描画 */
+/* ステータス表示 */
 function renderPlayerTable() {
   let html = `
     <table>
