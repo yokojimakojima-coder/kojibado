@@ -2,181 +2,89 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>名前管理（コジバド!!）</title>
+<title>名前管理 - コジバド!!</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
 
 <style>
 body {
-    font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
-    background: #fff9fe;
-    padding: 20px;
-    color: #444;
+  background: #fff9fe;
+  padding: 20px;
+  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
 }
 
-/* 見出し */
 h2 {
-    text-align: center;
-    font-size: 28px;
-    color: #ff66b3;
-    margin-bottom: 20px;
-    letter-spacing: 2px;
-    text-shadow: 1px 1px 0 #fff;
+  text-align: center;
+  font-size: 32px;
+  color: #ff66b3;
+  margin-bottom: 20px;
 }
 
-/* 入力欄 */
-input[type="text"] {
-    width: 95%;
-    padding: 14px;
-    font-size: 18px;
-    border-radius: 15px;
-    border: 2px solid #ff99cc;
-    margin-bottom: 10px;
-    outline: none;
-    background: #ffffff;
+.input-box {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid #ffb3d9;
+  background: #ffe6f3;
+  margin-bottom: 10px;
+  font-size: 18px;
 }
 
-/* 追加ボタン */
-.btn-add {
-    width: 100%;
-    background: #ff99cc;
-    border: none;
-    padding: 12px;
-    margin-top: 5px;
-    border-radius: 15px;
-    font-size: 20px;
-    color: #fff;
-    cursor: pointer;
-    font-weight: bold;
-}
-.btn-add:hover {
-    background: #ff82bf;
+button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  margin-bottom: 10px;
 }
 
-/* 名前リスト */
-.player-box {
-    background: #ffe6f3;
-    border: 2px solid #ffb3d9;
-    padding: 10px;
-    border-radius: 15px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.btn-pink { background: #ff99cc; color: white; }
+.btn-green { background: #8ee38e; color: white; }
+.btn-blue { background: #80bfff; color: white; }
+
+.list-item {
+  background: #fff6fc;
+  border: 2px solid #ffb3d9;
+  padding: 10px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* 並び替えアイコン */
-.drag-icon {
-    cursor: grab;
-    font-size: 24px;
-    margin-right: 10px;
-}
-
-/* 削除ボタン */
-.delete-btn {
-    background: #ff6675;
-    border: none;
-    color: #fff;
-    padding: 10px 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 14px;
-}
-.delete-btn:hover {
-    background: #ff3344;
-}
-
-/* 下部ボタン */
-.bottom-btn {
-    width: 100%;
-    padding: 15px;
-    border-radius: 15px;
-    font-size: 20px;
-    margin-top: 10px;
-    font-weight: bold;
-    cursor: pointer;
-    border: none;
-}
-.green-btn {
-    background: #8ee38e;
-    color: #fff;
-}
-.green-btn:hover {
-    background: #6edc6e;
-}
-.blue-btn {
-    background: #89c8ff;
-    color: #fff;
-}
-.blue-btn:hover {
-    background: #5db5ff;
+.del-btn {
+  background: #ff6675;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 </style>
-
 </head>
+
 <body>
 
 <h2>名前管理</h2>
 
-<input type="text" id="playerName" placeholder="名前を入力（例：コジコジ）">
-<button class="btn-add" onclick="addPlayer()">追加</button>
+<input id="newPlayer" class="input-box" placeholder="名前を入力（例：コジコジ）">
 
-<div id="playerList"></div>
+<button class="btn-pink" onclick="addPlayer()">追加</button>
+<button class="btn-green" onclick="savePlayers()">保存</button>
+<button class="btn-blue" onclick="location.href='attendance.html'">当日の参加者を選ぶ →</button>
 
-<button class="bottom-btn green-btn" onclick="savePlayers()">保存</button>
-<button class="bottom-btn blue-btn" onclick="location.href='attendance.html'">当日の参加者を選ぶ →</button>
+<!-- 🔥 ここが無かったのがバグの原因！ -->
+<ul id="playerList" style="list-style:none; padding-left:0; margin-top:20px;"></ul>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script src="common.js"></script>
 <script>
-function addPlayer() {
-    const name = document.getElementById("playerName").value.trim();
-    if (!name) return;
-
-    const list = JSON.parse(localStorage.getItem("players") || "[]");
-    list.push(name);
-    localStorage.setItem("allPlayers", JSON.stringify(players));
-    document.getElementById("playerName").value = "";
-    loadPlayers();
-}
-
-function deletePlayer(name) {
-    let list = JSON.parse(localStorage.getItem("players") || "[]");
-    list = list.filter(n => n !== name);
-    localStorage.setItem("players", JSON.stringify(list));
-    loadPlayers();
-}
-
-function loadPlayers() {
-    const list = JSON.parse(localStorage.getItem("players") || "[]");
-    let html = "";
-
-    list.forEach(name => {
-        html += `
-        <div class="player-box">
-            <span class="drag-icon">☰</span>
-            <span>${name}</span>
-            <button class="delete-btn" onclick="deletePlayer('${name}')">削除</button>
-        </div>
-        `;
-    });
-
-    document.getElementById("playerList").innerHTML = html;
-
-    new Sortable(playerList, { animation: 150 });
-}
-
-function savePlayers() {
-    const boxes = document.querySelectorAll("#playerList .player-box");
-    const newList = [];
-    boxes.forEach(b => newList.push(b.children[1].innerText));
-
-    localStorage.setItem("players", JSON.stringify(newList));
-    alert("名前リストを保存しました！");
-}
-
 window.onload = loadPlayers;
 </script>
 
 </body>
 </html>
-
