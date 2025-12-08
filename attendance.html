@@ -5,27 +5,7 @@
 <title>参加者チェック - コジバド!!</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
-
-<style>
-.checkbox-line {
-  background: #ffe6f3;
-  padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  border: 2px solid #ffb3d9;
-  font-size: 18px;
-}
-
-.start-select {
-  margin-top: 6px;
-  width: 100%;
-  padding: 8px;
-  border-radius: 10px;
-  border: 2px solid #ffb3d9;
-  background: #fff;
-  font-size: 16px;
-}
-</style>
+<script defer src="common.js"></script>
 </head>
 
 <body>
@@ -35,7 +15,7 @@
 <button class="green" onclick="location.href='players.html'">名前管理へ戻る</button>
 
 <p style="text-align:center; margin-top:10px;">
-  今日来ている人にチェック & 参加開始ラウンドを設定してください
+  今日来ている人にチェックを入れて、参加開始ラウンドを設定してください
 </p>
 
 <div id="playerList"></div>
@@ -46,8 +26,8 @@
 <button class="green" onclick="saveActivePlayers()">参加者を保存 → 試合作成へ</button>
 
 <script>
-// 名簿読み込み
-function loadPlayers() {
+// ★ 名簿を参加者チェック画面に読み込む関数（必須）
+function loadPlayersToAttendance() {
   const list = JSON.parse(localStorage.getItem("allPlayers") || "[]");
   const active = JSON.parse(localStorage.getItem("activePlayers") || "[]");
   const startRounds = JSON.parse(localStorage.getItem("activePlayersStartRound") || "{}");
@@ -67,7 +47,9 @@ function loadPlayers() {
         <div>
           参加開始ラウンド：
           <select class="start-select" data-start="${name}">
-            ${[...Array(20)].map((_,i)=>`<option value="${i+1}" ${start==(i+1)?"selected":""}>${i+1} 試合目</option>`).join("")}
+            ${[...Array(20)].map((_,i)=>`
+              <option value="${i+1}" ${start==(i+1)?"selected":""}>${i+1} 試合目</option>
+            `).join("")}
           </select>
         </div>
       </div>
@@ -78,19 +60,15 @@ function loadPlayers() {
 }
 
 // 全員 ON/OFF
-function checkAll() {
-  document.querySelectorAll(".chk").forEach(cb => cb.checked = true);
-}
-function uncheckAll() {
-  document.querySelectorAll(".chk").forEach(cb => cb.checked = false);
-}
+function checkAll(){ document.querySelectorAll(".chk").forEach(cb=>cb.checked=true); }
+function uncheckAll(){ document.querySelectorAll(".chk").forEach(cb=>cb.checked=false); }
 
 // 保存
 function saveActivePlayers() {
   const active = [];
   const startRounds = {};
 
-  document.querySelectorAll(".checkbox-line").forEach(box => {
+  document.querySelectorAll(".checkbox-line").forEach(box=>{
     const cb = box.querySelector(".chk");
     const name = cb.dataset.name;
     const startSel = box.querySelector(".start-select").value;
@@ -111,7 +89,8 @@ function saveActivePlayers() {
   location.href = "index.html";
 }
 
-window.onload = loadPlayers;
+// ★ ページ読み込み時に名簿を表示
+window.onload = loadPlayersToAttendance;
 </script>
 
 </body>
