@@ -7,155 +7,151 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-body {
-  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
-  background: #fff9fe;
-  padding: 20px;
+h1 {
+  text-align: center;
+  font-size: 42px;
+  font-weight: 900;
+  color: #ff66b3;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px #ffd6eb;
 }
 
-h2 {
-  text-align: center;
-  font-size: 32px;
-  color: #ff66b3;
+.block {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
   margin-bottom: 20px;
+  border: 2px solid #ffd3ec;
 }
 
 .list-item {
   background: #ffe6f3;
-  padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 10px;
   border: 2px solid #ffb3d9;
-  font-size: 18px;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
 }
 
-.list-row {
+.row-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.join-select {
-  margin-left: 20px;
+.row-bottom {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.name {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+input[type="number"] {
+  width: 90px;
   padding: 6px;
+  border: 2px solid #ffb3d9;
   border-radius: 8px;
-  border: 1px solid #ffb3d9;
-  background: #fff;
 }
 
 button {
   width: 100%;
-  padding: 15px;
-  font-size: 20px;
-  border-radius: 15px;
+  padding: 12px;
+  border-radius: 10px;
   border: none;
+  font-size: 18px;
   font-weight: bold;
+  background: #ff99cc;
+  color: #fff;
   margin-top: 10px;
-  cursor: pointer;
 }
-
-.green { background: #8ee38e; color: white; }
-.red   { background: #ff6675; color: white; }
-.pink  { background: #ff99cc; color: white; }
+button:hover {
+  background: #ff66b3;
+}
 </style>
 </head>
 
 <body>
 
-<h2>参加者チェック</h2>
+<h1>参加者チェック</h1>
 
-<button class="pink" onclick="location.href='players.html'">
-  名前管理へ戻る
-</button>
+<!-- ナビ -->
+<div class="top-nav">
+  <a href="players.html">名簿管理</a>
+  <a class="active" href="attendance.html">参加者チェック</a>
+  <a href="index.html">試合作成</a>
+</div>
 
-<p style="text-align:center; margin-top:10px;">
-  今日来ている人にチェックを入れてください
-</p>
+<div class="block">
+  <p style="text-align:center;">今日来ている人にチェックを入れ、<br>途中参加の人は開始ラウンドを設定してください</p>
+</div>
 
-<ul id="activeList" style="padding-left:0; list-style:none;"></ul>
+<!-- 名簿リスト -->
+<ul id="activeList" style="list-style:none; padding-left:0;"></ul>
 
-<button class="green" onclick="checkAll()">全員 ON</button>
-<button class="red"   onclick="uncheckAll()">全員 OFF</button>
-
-<button class="green" onclick="saveActivePlayers()">参加者を保存 → 試合作成へ</button>
+<!-- ボタン -->
+<button onclick="checkAll()">全員 ON</button>
+<button onclick="uncheckAll()">全員 OFF</button>
+<button onclick="saveActiveAndJoin()">参加者を保存 → 試合作成へ</button>
 
 <script src="common.js"></script>
-
 <script>
+/* 初期表示 */
 window.onload = () => {
-  loadPlayersToAttendance();
+  loadPlayersToAttendance_full();
 };
 
-/* 参加者リストを読み込む（途中参加つき） */
-function loadPlayersToAttendance() {
+/* -------------------------------
+   名簿と途中参加ラウンドの読み込み
+--------------------------------*/
+function loadPlayersToAttendance_full() {
   const list = document.getElementById("activeList");
   list.innerHTML = "";
 
   const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
+  const active = JSON.parse(localStorage.getItem("activePlayers") || "[]");
   const joinData = JSON.parse(localStorage.getItem("joinRoundData") || "{}");
 
   players.forEach(name => {
-    const checked = true; // 初期はONにしない（外す?）
+    const isChecked = active.includes(name) ? "checked" : "";
     const joinRound = joinData[name] || 1;
 
     const li = document.createElement("li");
     li.className = "list-item";
 
     li.innerHTML = `
-      <div class="list-row">
+      <div class="row-top">
         <label>
-          <input type="checkbox" class="chk" data-name="${name}">
-          <span>${name}</span>
+          <input type="checkbox" class="chk" data-name="${name}" ${isChecked}>
+          <span class="name">${name}</span>
         </label>
+      </div>
 
-        <select class="join-select" data-name="${name}">
-          <option value="1">1試合目から</option>
-          <option value="2">2試合目から</option>
-          <option value="3">3試合目から</option>
-          <option value="4">4試合目から</option>
-          <option value="5">5試合目から</option>
-          <option value="6">6試合目から</option>
-          <option value="7">7試合目から</option>
-          <option value="8">8試合目から</option>
-          <option value="9">9試合目から</option>
-          <option value="10">10試合目から</option>
-          <option value="11">11試合目から</option>
-          <option value="12">12試合目から</option>
-        </select>
+      <div class="row-bottom">
+        <span>参加開始：</span>
+        <input type="number" class="join-input" 
+               data-name="${name}" 
+               value="${joinRound}" min="1" max="40">
+        <span>試合目〜</span>
       </div>
     `;
-
-    // 途中参加ラウンドを反映
-    li.querySelector(".join-select").value = joinRound;
 
     list.appendChild(li);
   });
 }
 
-function checkAll() {
-  document.querySelectorAll(".chk").forEach(cb => cb.checked = true);
-}
+/* 参加者と joinRoundData をまとめて保存 */
+function saveActiveAndJoin() {
+  const checkedList = document.querySelectorAll(".chk");
+  const active = [];
 
-function uncheckAll() {
-  document.querySelectorAll(".chk").forEach(cb => cb.checked = false);
-}
-
-/* 参加者保存 */
-function saveActivePlayers() {
-  const chks = document.querySelectorAll(".chk");
-  const selects = document.querySelectorAll(".join-select");
-
-  let active = [];
-  let joinRoundData = {};
-
-  chks.forEach(cb => {
-    const name = cb.dataset.name;
-    if (cb.checked) active.push(name);
-  });
-
-  selects.forEach(sel => {
-    const name = sel.dataset.name;
-    joinRoundData[name] = Number(sel.value);
+  checkedList.forEach(cb => {
+    if (cb.checked) active.push(cb.dataset.name);
   });
 
   if (active.length < 4) {
@@ -163,10 +159,18 @@ function saveActivePlayers() {
     return;
   }
 
-  localStorage.setItem("activePlayers", JSON.stringify(active));
-  localStorage.setItem("joinRoundData", JSON.stringify(joinRoundData));
+  // 途中参加ラウンド保存
+  const joinData = {};
+  document.querySelectorAll(".join-input").forEach(inp => {
+    const n = inp.dataset.name;
+    const v = Number(inp.value);
+    joinData[n] = Math.max(1, Math.min(40, v)); // 1〜40の範囲に制限
+  });
 
-  alert("参加者を保存しました！");
+  localStorage.setItem("joinRoundData", JSON.stringify(joinData));
+  localStorage.setItem("activePlayers", JSON.stringify(active));
+
+  alert("保存しました！試合作成へ移動します。");
   location.href = "index.html";
 }
 </script>
