@@ -7,41 +7,24 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-body {
-  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
-  background: #fff9fe;
-  padding: 20px;
-}
-
-h2 {
-  text-align: center;
-  font-size: 32px;
-  color: #ff66b3;
-  margin-bottom: 20px;
-}
-
 .checkbox-line {
   background: #ffe6f3;
   padding: 12px;
   border-radius: 12px;
   margin-bottom: 10px;
   border: 2px solid #ffb3d9;
-  font-size: 20px;
+  font-size: 18px;
 }
 
-button {
+.start-select {
+  margin-top: 6px;
   width: 100%;
-  padding: 15px;
-  font-size: 20px;
-  border-radius: 15px;
-  border: none;
-  font-weight: bold;
-  margin-top: 10px;
-  cursor: pointer;
+  padding: 8px;
+  border-radius: 10px;
+  border: 2px solid #ffb3d9;
+  background: #fff;
+  font-size: 16px;
 }
-
-.green { background: #8ee38e; color: white; }
-.red   { background: #ff6675; color: white; }
 </style>
 </head>
 
@@ -49,38 +32,44 @@ button {
 
 <h2>参加者チェック</h2>
 
-<!-- 名前管理へ戻るボタン -->
-<button class="green" onclick="location.href='players.html'">
-  名前管理へ戻る
-</button>
+<button class="green" onclick="location.href='players.html'">名前管理へ戻る</button>
 
 <p style="text-align:center; margin-top:10px;">
-  今日来ている人にチェックを入れてください
+  今日来ている人にチェック & 参加開始ラウンドを設定してください
 </p>
 
 <div id="playerList"></div>
 
 <button class="green" onclick="checkAll()">全員 ON</button>
-<button class="red"   onclick="uncheckAll()">全員 OFF</button>
+<button class="red" onclick="uncheckAll()">全員 OFF</button>
 
 <button class="green" onclick="saveActivePlayers()">参加者を保存 → 試合作成へ</button>
 
 <script>
 // 名簿読み込み
 function loadPlayers() {
-  const list = JSON.parse(localStorage.getItem("players") || "[]");
+  const list = JSON.parse(localStorage.getItem("allPlayers") || "[]");
   const active = JSON.parse(localStorage.getItem("activePlayers") || "[]");
+  const startRounds = JSON.parse(localStorage.getItem("activePlayersStartRound") || "{}");
 
   let html = "";
 
   list.forEach(name => {
     const checked = active.includes(name) ? "checked" : "";
+    const start = startRounds[name] || 1;
+
     html += `
       <div class="checkbox-line">
         <label>
-          <input type="checkbox" data-name="${name}" ${checked}>
+          <input type="checkbox" class="chk" data-name="${name}" ${checked}>
           ${name}
         </label>
+        <div>
+          参加開始ラウンド：
+          <select class="start-select" data-start="${name}">
+            ${[...Array(20)].map((_,i)=>`<option value="${i+1}" ${start==(i+1)?"selected":""}>${i+1} 試合目</option>`).join("")}
+          </select>
+        </div>
       </div>
     `;
   });
@@ -89,27 +78,39 @@ function loadPlayers() {
 }
 
 // 全員 ON/OFF
-function checkAll() { document.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = true); }
-function uncheckAll() { document.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = false); }
+function checkAll() {
+  document.querySelectorAll(".chk").forEach(cb => cb.checked = true);
+}
+function uncheckAll() {
+  document.querySelectorAll(".chk").forEach(cb => cb.checked = false);
+}
 
-// 保存して index に移動
+// 保存
 function saveActivePlayers() {
-  const checked = [];
-  document.querySelectorAll("input[type='checkbox']").forEach(cb => {
-    if (cb.checked) checked.push(cb.dataset.name);
+  const active = [];
+  const startRounds = {};
+
+  document.querySelectorAll(".checkbox-line").forEach(box => {
+    const cb = box.querySelector(".chk");
+    const name = cb.dataset.name;
+    const startSel = box.querySelector(".start-select").value;
+
+    if (cb.checked) active.push(name);
+    startRounds[name] = Number(startSel);
   });
 
-  if (checked.length < 4) {
+  if (active.length < 4) {
     alert("4人以上選択してください");
     return;
   }
 
-  localStorage.setItem("activePlayers", JSON.stringify(checked));
+  localStorage.setItem("activePlayers", JSON.stringify(active));
+  localStorage.setItem("activePlayersStartRound", JSON.stringify(startRounds));
+
   alert("保存しました！試合作成へ移動します。");
   location.href = "index.html";
 }
 
-// 初期表示で名簿読み込み
 window.onload = loadPlayers;
 </script>
 
