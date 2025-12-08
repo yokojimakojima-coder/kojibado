@@ -33,14 +33,16 @@
     -webkit-background-clip: text;
     color: transparent;
 
-    animation: fadeSlide 1.5s ease-out forwards,
-               rainbow 7s infinite linear,
-               shake 2s infinite ease-in-out;
+    animation:
+      fadeSlide 1.5s ease-out forwards,
+      rainbow 7s infinite linear,
+      shakeRotate 2s infinite ease-in-out;
 }
 
+/* !! だけ bouncing */
 .kojibado-title .bang {
     display: inline-block;
-    animation: bounce 0.8s infinite ease-in-out;
+    animation: bounceY 0.8s infinite ease-in-out;
 }
 
 /* ふわっと登場 */
@@ -49,28 +51,28 @@
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 虹色に動く */
+/* 虹色グラデ */
 @keyframes rainbow {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-/* タイトルを可愛くプルプル揺らす */
-@keyframes shake {
+/* タイトル軽く揺らす */
+@keyframes shakeRotate {
   0%, 100% { transform: rotate(0deg); }
   50% { transform: rotate(1.4deg); }
 }
 
-/* !! だけピョンピョン跳ねる */
-@keyframes bounce {
+/* !! の上下 */
+@keyframes bounceY {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-12px); }
 }
 
 
 /* ======================================
-   ★ UI・ボタン・カード
+   UI・ボタン・ブロックデザイン
    ====================================== */
 
 body {
@@ -253,7 +255,7 @@ window.onload = () => {
   document.getElementById("addBtn").onclick = addOneRound;
 };
 
-/* AI重み（common.js 使用） */
+/* AI重み（common.js を使用） */
 function getAiWeights() {
   return getCommonAiWeights(currentAiMode, players);
 }
@@ -299,7 +301,7 @@ function addOneRound() {
   createNextRound(courtCount);
 }
 
-/* ラウンド生成（common.js） */
+/* ラウンド生成 */
 function createNextRound(courtCount) {
   const result = generateRound(players, roundNumber, courtCount, getAiWeights());
   if (!result) {
@@ -310,11 +312,10 @@ function createNextRound(courtCount) {
   renderRound(result.rounds, result.refs, result.benches);
   renderPlayerTable();
   roundNumber++;
-
   return true;
 }
 
-/* ラウンド表示 */
+/* 試合カード描画 */
 function renderRound(rounds, refs, benches) {
   const roundsDiv = document.getElementById("rounds");
   const noMsg = document.getElementById("noRoundMsg");
@@ -349,7 +350,7 @@ function renderRound(rounds, refs, benches) {
   roundsDiv.appendChild(box);
 }
 
-/* 表：プレイヤーステータス */
+/* プレイヤーステータス表描画 */
 function renderPlayerTable() {
   let html = `
     <table>
