@@ -2,36 +2,167 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>名簿管理</title>
+<title>名簿管理 - コジバド！！</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-<script src="common.js"></script>
+
+<style>
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+    padding: 15px;
+    background: #f7f7f7;
+  }
+  h1 {
+    text-align: center;
+    font-size: 28px;
+  }
+
+  .top-nav {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .top-nav a {
+    flex: 1;
+    padding: 10px;
+    background: #4CAF50;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 6px;
+  }
+  .top-nav a.active {
+    background: #2e7d32;
+  }
+
+  #playerInput {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+
+  #addBtn {
+    width: 100%;
+    padding: 10px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+  }
+  li {
+    background: white;
+    padding: 10px;
+    margin-bottom: 6px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .btn-small {
+    padding: 4px 8px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    margin-left: 5px;
+  }
+  .btn-del {
+    background: #e53935;
+  }
+</style>
 </head>
+
 <body>
 
 <h1>名簿管理</h1>
 
-<div class="block">
-  <h2>名前を追加</h2>
-  <input type="text" id="newPlayer" placeholder="名前を入力">
-  <button onclick="addPlayer()">追加</button>
+<div class="top-nav">
+  <a href="players.html" class="active">名簿管理</a>
+  <a href="attendance.html">参加者チェック</a>
+  <a href="index.html">試合作成</a>
 </div>
 
-<div class="block">
-  <h2>登録名簿（並び替え可能）</h2>
-  <ul id="playerList" class="sortable"></ul>
-</div>
+<input id="playerInput" type="text" placeholder="名前を入力（例：小関）">
+<button id="addBtn">追加</button>
 
-<button onclick="savePlayers()" class="save-btn">保存</button>
-
-<a href="attendance.html" class="link-btn">当日の参加者を選ぶ →</a>
+<ul id="playerList"></ul>
 
 <script>
-window.onload = () => {
+let players = [];
+
+window.onload = function () {
   loadPlayers();
-  new Sortable(playerList, { animation: 150 });
+  renderPlayers();
+
+  document.getElementById("addBtn").onclick = addPlayer;
 };
+
+function loadPlayers() {
+  players = JSON.parse(localStorage.getItem("players") || "[]");
+  if (!Array.isArray(players)) players = [];
+}
+
+function savePlayers() {
+  localStorage.setItem("players", JSON.stringify(players));
+}
+
+function addPlayer() {
+  const name = document.getElementById("playerInput").value.trim();
+  if (!name) return;
+
+  players.push(name);
+  savePlayers();
+  renderPlayers();
+  document.getElementById("playerInput").value = "";
+}
+
+function deletePlayer(i) {
+  players.splice(i, 1);
+  savePlayers();
+  renderPlayers();
+}
+
+function moveUp(i) {
+  if (i === 0) return;
+  [players[i - 1], players[i]] = [players[i], players[i - 1]];
+  savePlayers();
+  renderPlayers();
+}
+
+function moveDown(i) {
+  if (i === players.length - 1) return;
+  [players[i + 1], players[i]] = [players[i], players[i + 1]];
+  savePlayers();
+  renderPlayers();
+}
+
+function renderPlayers() {
+  const ul = document.getElementById("playerList");
+  ul.innerHTML = "";
+
+  players.forEach((name, i) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span>${name}</span>
+      <div>
+        <button class="btn-small" onclick="moveUp(${i})">↑</button>
+        <button class="btn-small" onclick="moveDown(${i})">↓</button>
+        <button class="btn-small btn-del" onclick="deletePlayer(${i})">削除</button>
+      </div>
+    `;
+    ul.appendChild(li);
+  });
+}
 </script>
 
 </body>
