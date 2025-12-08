@@ -69,7 +69,6 @@ function savePlayers() {
    参加者管理（必要なら呼び出し）
    ========================= */
 
-// listSelector で指定したリストから当日の参加者を保存
 function saveActivePlayersFromList(listSelector) {
   const items = document.querySelectorAll(listSelector + " li");
   const active = [];
@@ -167,12 +166,6 @@ function getCommonAiWeights(mode, players) {
  * roundNumber: 今何試合目か（1,2,3,...）
  * courtCount: コート数（1〜4）
  * weights: getCommonAiWeights() の戻り値
- *
- * return:
- *   { rounds: [{teamA:[idx,idx], teamB:[idx,idx]}, ...],
- *     refs: [playerIndex,...],
- *     benches: [playerIndex,...] }
- *   作れないときは null
  */
 function generateRound(players, roundNumber, courtCount, weights) {
   const n = players.length;
@@ -232,7 +225,7 @@ function generateRound(players, roundNumber, courtCount, weights) {
       refs.push(refIdx);
     }
 
-    const score = scoreCandidate(players, rounds, refs, benches, roundNumber, weights, courtCount);
+    const score = scoreCandidate(players, rounds, refs, benches, roundNumber, weights, usableCourts);
 
     if (score < bestScore) {
       bestScore = score;
@@ -272,7 +265,6 @@ function scoreCandidate(players, rounds, refs, benches, roundNumber, w, courtCou
   const targetRefsTotal  = refRatioPerRound  * TOTAL_ROUNDS;
   const targetRestsTotal = restRatioPerRound * TOTAL_ROUNDS;
 
-  // 各プレイヤーごとの偏り＋連続ペナルティ
   players.forEach((p, idx) => {
     const isPlaying = playingSet.has(idx);
     const isRef = refSet.has(idx);
@@ -282,7 +274,7 @@ function scoreCandidate(players, rounds, refs, benches, roundNumber, w, courtCou
     const futureRefs  = p.refs  + (isRef ? 1 : 0);
     const futureRests = p.rests + (isBench ? 1 : 0);
 
-    // 連続試合・連続休憩ペナルティ（少し強め）
+    // 連続試合・連続休憩ペナルティ
     if (isPlaying && p.lastRoundPlayed === roundNumber - 1) {
       score += w.backToBackPlay * 2;
     }
@@ -328,8 +320,6 @@ function scoreCandidate(players, rounds, refs, benches, roundNumber, w, courtCou
  * 採用されたラウンド結果を players に反映
  */
 function applyRoundResult(players, rounds, refs, benches, roundNumber) {
-  const playingSet = new Set();
-
   rounds.forEach(r => {
     const [a1, a2] = r.teamA;
     const [b1, b2] = r.teamB;
@@ -338,7 +328,6 @@ function applyRoundResult(players, rounds, refs, benches, roundNumber) {
       const p = players[idx];
       p.games += 1;
       p.lastRoundPlayed = roundNumber;
-      playingSet.add(idx);
     });
 
     // パートナー登録
@@ -373,7 +362,7 @@ function applyRoundResult(players, rounds, refs, benches, roundNumber) {
     p.lastRestRound = roundNumber;
   });
 
-  // （参考用）現時点の平均値との差を記録しておくこともできる
+  // 平均との差も持っておく（参考）
   const avgGames = players.reduce((s,p)=>s+p.games,0) / players.length;
   const avgRefs  = players.reduce((s,p)=>s+p.refs ,0) / players.length;
   const avgRests = players.reduce((s,p)=>s+p.rests,0) / players.length;
@@ -383,4 +372,88 @@ function applyRoundResult(players, rounds, refs, benches, roundNumber) {
     p.refsBias  = p.refs  - avgRefs;
     p.restsBias = p.rests - avgRests;
   });
+}
+
+/* =========================
+   途中参加・途中退出対応
+   ========================= */
+
+/**
+ * 途中参加・途中退出に対応し、
+ * プレイヤーデータを公平性を保ったまま再構築する
+ */
+function reloadActivePlayers(players, roundNumber) {
+  const activeNames = JSON.parse(localStorage.getItem("activePlayers") || "[]");
+  if (!activeNames || activeNames.length < 4) {
+    alert("参加者は4人以上必要です！");
+    return;
+  }
+
+  const oldPlayers = players.slice();
+  if (oldPlayers.length === 0) {
+    // まだ試合前なら単純に新規作成
+    activeNames.forEach((name, idx) => {
+      players.push({
+        name,
+        idx,
+        games: 0,
+        refs: 0,
+        rests: 0,
+        lastRoundPlayed: 0,
+        lastRefRound: 0,
+        lastRestRound: 0,
+        partners: new Set(),
+        opponents: new Set()
+      });
+    });
+    return;
+  }
+
+  const newPlayers = [];
+
+  // 今までの平均値（偏り補正に使う）
+  const avgGames = oldPlayers.reduce((s,p)=>s+p.games,0) / oldPlayers.length;
+  const avgRefs  = oldPlayers.reduce((s,p)=>s+p.refs ,0) / oldPlayers.length;
+  const avgRests = oldPlayers.reduce((s,p)=>s+p.rests,0) / oldPlayers.length;
+
+  activeNames.forEach((name, idx) => {
+    const old = oldPlayers.find(p => p.name === name);
+
+    if (old) {
+      // 既存メンバー → データ引き継ぎ
+      newPlayers.push({
+        name,
+        idx,
+        games: old.games,
+        refs: old.refs,
+        rests: old.rests,
+        lastRoundPlayed: old.lastRoundPlayed,
+        lastRefRound: old.lastRefRound,
+        lastRestRound: old.lastRestRound,
+        partners: new Set([...old.partners]),
+        opponents: new Set([...old.opponents])
+      });
+    } else {
+      // 途中参加メンバー → 新規作成し補正を追加
+      newPlayers.push({
+        name,
+        idx,
+        games: Math.max(0, Math.floor(avgGames * 0.8)), // 少し少なめにして試合入りやすく
+        refs:  Math.floor(avgRefs * 0.6),               // 審判はやや少なめ
+        rests: Math.floor(avgRests * 1.3),              // 休憩多めスタート
+        lastRoundPlayed: 0,
+        lastRefRound: 0,
+        lastRestRound: roundNumber - 1,
+        partners: new Set(),
+        opponents: new Set()
+      });
+    }
+  });
+
+  // インデックス振り直し
+  newPlayers.forEach((p, i) => p.idx = i);
+
+  // 呼び出し元の配列を書き換え
+  players.length = 0;
+  newPlayers.forEach(p => players.push(p));
 }
