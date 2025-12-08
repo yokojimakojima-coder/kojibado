@@ -1,104 +1,115 @@
-/*  
-============================
-   全ページ共通スタイル
-============================
-*/
-
 body {
-  font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
-  margin: 16px;
-  background: #fafafa;
-  font-size: 17px;
+  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
+  background:#fff9fe;
+  margin:0;
+  padding:16px;
 }
 
-h1 {
-  text-align: center;
-  font-size: 26px;
-  margin-bottom: 20px;
+.kojibado-title {
+  text-align:center;
+  font-size:60px;
+  font-weight:900;
+  background:linear-gradient(45deg,#ff66b3,#ffcc33,#66ff99,#66ccff,#cc99ff,#ff66b3);
+  background-size:400% 400%;
+  -webkit-background-clip:text;
+  color:transparent;
+  animation:rainbow 7s infinite linear, fadeIn 1s ease-out;
 }
 
-/* ------- ブロックBOX ------- */
+.bang {
+  display:inline-block;
+  animation:bounce 0.8s infinite ease-in-out;
+}
+
+@keyframes rainbow {
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+
+@keyframes fadeIn {
+  0%{opacity:0;transform:translateY(-30px) scale(0.8);}
+  100%{opacity:1;transform:translateY(0) scale(1);}
+}
+
+@keyframes bounce {
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-12px);}
+}
+
+.top-nav {
+  display:flex;
+  gap:6px;
+  margin-bottom:16px;
+}
+
+.top-nav a {
+  flex:1;
+  padding:12px;
+  text-align:center;
+  background:#ff99cc;
+  color:white;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:bold;
+}
+
+.top-nav a.active { background:#ff66b3; }
+
 .block {
-  background: white;
-  padding: 16px;
-  border-radius: 10px;
-  margin-bottom: 18px;
-  border: 1px solid #ddd;
+  background:white;
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:20px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
-/* ------- ボタン ------- */
-button, .link-btn {
-  width: 100%;
-  padding: 12px;
-  background: #4CAF50;
-  color: white;
-  text-align: center;
-  border: none;
-  border-radius: 6px;
-  font-size: 18px;
-  margin-top: 8px;
-  text-decoration: none;
-  display: inline-block;
+label { font-size:16px; }
+
+.select-row { display:flex; gap:10px; }
+
+select, button {
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:2px solid #ffb3d9;
+  background:#ffe6f3;
+  font-size:16px;
 }
 
-button:active, .link-btn:active {
-  opacity: 0.7;
+button {
+  background:#ff99cc;
+  color:white;
+  border:none;
+  font-weight:bold;
 }
 
-/* ------- 削除ボタン ------- */
-.del-btn {
-  background: #F44336;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: none;
-  color: white;
-  margin-left: auto;
+button:hover { background:#ff82bf; }
+
+.match-round {
+  padding:14px;
+  border:2px solid #ffd3ec;
+  border-radius:14px;
+  margin-bottom:16px;
 }
 
-/* ------- リスト ------- */
-ul.sortable {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.match-card {
+  background:#fff6fc;
+  border:1px solid #ffb3d9;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:8px;
 }
 
-.list-item {
-  background: #fff;
-  margin-bottom: 8px;
-  padding: 10px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  border: 1px solid #ddd;
-}
+table { width:100%; border-collapse:collapse; }
 
-.list-item label {
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-}
-
-.drag {
-  font-size: 20px;
-  margin-left: 10px;
-  cursor: grab;
-}
-
-.name {
-  margin-left: 8px;
-  font-size: 17px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-th, td {
-  border: 1px solid #ccc;
-  padding: 6px;
-  text-align: center;
-}
 th {
-  background: #eee;
+  background:#ffe0f4;
+  padding:8px;
+  font-weight:bold;
+}
+
+td {
+  padding:8px;
+  border-bottom:1px solid #ffd3ec;
 }
