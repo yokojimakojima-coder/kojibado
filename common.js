@@ -5,6 +5,9 @@
 ==========================================
 */
 
+// 1日のターゲット試合数
+const TOTAL_ROUNDS = 20;
+
 /* =========================
    名簿管理（players.html 用）
    ========================= */
@@ -63,10 +66,10 @@ function savePlayers() {
 }
 
 /* =========================
-   参加者管理（attendance用）
+   参加者管理（必要なら呼び出し）
    ========================= */
 
-// attendance.html で使う「当日の参加者」保存
+// listSelector で指定したリストから当日の参加者を保存
 function saveActivePlayersFromList(listSelector) {
   const items = document.querySelectorAll(listSelector + " li");
   const active = [];
@@ -105,14 +108,13 @@ function shuffleArray(arr) {
    ========================= */
 
 function getCommonAiWeights(mode, players) {
-  // 基本重み
   const base = {
-    partnerRepeat: 8,    // 同じペアを組むペナルティ
-    opponentRepeat: 4,   // 同じ相手と当たるペナルティ
-    backToBackPlay: 2,   // 連続試合ペナルティ
-    backToBackRest: 2,   // 連続休憩ペナルティ
-    refBias: 2,          // 審判回数の偏り
-    gameBias: 3          // 試合数の偏り
+    partnerRepeat: 8,   // 同じペア
+    opponentRepeat: 4,  // 同じ相手
+    backToBackPlay: 2,  // 連続試合
+    backToBackRest: 2,  // 連続休憩
+    refBias: 2,         // 審判偏り
+    gameBias: 3         // 試合数偏り
   };
 
   switch (mode) {
@@ -133,14 +135,14 @@ function getCommonAiWeights(mode, players) {
         opponentRepeat: 4,
         gameBias: 2
       };
-    case "C": // 体力重視（休憩バランス重視）
+    case "C": // 体力重視
       return {
         ...base,
         backToBackPlay: 5,
         backToBackRest: 4,
         gameBias: 3
       };
-    case "ML": // なんかそれっぽいやつ
+    case "ML": // それっぽいモード
       return {
         ...base,
         partnerRepeat: 9,
@@ -176,7 +178,6 @@ function generateRound(players, roundNumber, courtCount, weights) {
   const n = players.length;
   if (n < 4) return null;
 
-  // 実際に使えるコート数（人数が足りないとき減らす）
   let usableCourts = Math.min(courtCount, Math.floor(n / 4));
   if (usableCourts <= 0) return null;
 
@@ -186,8 +187,8 @@ function generateRound(players, roundNumber, courtCount, weights) {
   let bestPlan = null;
   let bestScore = Infinity;
 
-  // ランダム試行回数（人数少ないのでこれで十分）
-  const TRY_COUNT = 120;
+  // 公平性アップのため試行回数を増やす
+  const TRY_COUNT = 800;
 
   for (let t = 0; t < TRY_COUNT; t++) {
     const shuffled = shuffleArray(allIdx);
@@ -195,7 +196,6 @@ function generateRound(players, roundNumber, courtCount, weights) {
     const playing = shuffled.slice(0, needPlayers);
     const benches = shuffled.slice(needPlayers);
 
-    // 4人ずつ切ってチームに
     const rounds = [];
     let valid = true;
     for (let c = 0; c < usableCourts; c++) {
@@ -217,7 +217,6 @@ function generateRound(players, roundNumber, courtCount, weights) {
     }
     if (!valid) continue;
 
-    // 審判候補（まずはベンチから）
     const refs = [];
     const benchesCopy = benches.slice();
 
@@ -227,16 +226,13 @@ function generateRound(players, roundNumber, courtCount, weights) {
       if (benchesCopy.length > 0) {
         refIdx = benchesCopy.shift();
       } else {
-        // ベンチが足りないときはプレイしない人優先だが、
-        // シンプルに playing から適当に。
         refIdx = playing[(c * 4) % playing.length];
       }
 
       refs.push(refIdx);
     }
 
-    // スコア計算
-    const score = scoreCandidate(players, rounds, refs, benches, roundNumber, weights);
+    const score = scoreCandidate(players, rounds, refs, benches, roundNumber, weights, courtCount);
 
     if (score < bestScore) {
       bestScore = score;
@@ -246,7 +242,6 @@ function generateRound(players, roundNumber, courtCount, weights) {
 
   if (!bestPlan) return null;
 
-  // ベスト案で players 情報を更新
   applyRoundResult(players, bestPlan.rounds, bestPlan.refs, bestPlan.benches, roundNumber);
 
   return bestPlan;
@@ -254,9 +249,11 @@ function generateRound(players, roundNumber, courtCount, weights) {
 
 /**
  * 候補ラウンドのスコアを計算（低いほど良い）
+ * 「20試合トータルでの理想値」を意識して偏りを評価
  */
-function scoreCandidate(players, rounds, refs, benches, roundNumber, w) {
+function scoreCandidate(players, rounds, refs, benches, roundNumber, w, courtCount) {
   let score = 0;
+  const n = players.length;
 
   const playingSet = new Set();
   rounds.forEach(r => {
@@ -266,28 +263,41 @@ function scoreCandidate(players, rounds, refs, benches, roundNumber, w) {
   const refSet = new Set(refs);
   const benchSet = new Set(benches);
 
-  // 各プレイヤーごとのペナルティ計算
+  // 20試合を想定した理想値（1人あたり）
+  const playRatioPerRound = Math.min(1, (4 * courtCount) / n);
+  const refRatioPerRound  = Math.min(1, courtCount / n);
+  const restRatioPerRound = Math.max(0, 1 - playRatioPerRound - refRatioPerRound);
+
+  const targetGamesTotal = playRatioPerRound * TOTAL_ROUNDS;
+  const targetRefsTotal  = refRatioPerRound  * TOTAL_ROUNDS;
+  const targetRestsTotal = restRatioPerRound * TOTAL_ROUNDS;
+
+  // 各プレイヤーごとの偏り＋連続ペナルティ
   players.forEach((p, idx) => {
     const isPlaying = playingSet.has(idx);
     const isRef = refSet.has(idx);
     const isBench = benchSet.has(idx);
 
-    // 連続試合・連続休憩ペナルティ
+    const futureGames = p.games + (isPlaying ? 1 : 0);
+    const futureRefs  = p.refs  + (isRef ? 1 : 0);
+    const futureRests = p.rests + (isBench ? 1 : 0);
+
+    // 連続試合・連続休憩ペナルティ（少し強め）
     if (isPlaying && p.lastRoundPlayed === roundNumber - 1) {
-      score += w.backToBackPlay;
+      score += w.backToBackPlay * 2;
     }
     if (isBench && p.lastRestRound === roundNumber - 1) {
-      score += w.backToBackRest;
+      score += w.backToBackRest * 2;
     }
 
-    // 審判偏り
-    const futureRefs = p.refs + (isRef ? 1 : 0);
-    const futureGames = p.games + (isPlaying ? 1 : 0);
-    // 簡単に「審判/試合の比率」が偏らないように
-    if (futureGames > 0) {
-      const ratio = futureRefs / futureGames;
-      if (ratio > 0.4) score += w.refBias * ratio; // 審判多すぎ
-    }
+    // 試合・審判・休憩回数の「理想値からのズレ」
+    const gameDiff = Math.abs(futureGames - targetGamesTotal);
+    const refDiff  = Math.abs(futureRefs  - targetRefsTotal);
+    const restDiff = Math.abs(futureRests - targetRestsTotal);
+
+    score += gameDiff * w.gameBias * 1.5;
+    score += refDiff  * w.refBias  * 2.0;
+    score += restDiff * w.backToBackRest * 1.8;
   });
 
   // パートナー・対戦相手のペナルティ
@@ -296,18 +306,10 @@ function scoreCandidate(players, rounds, refs, benches, roundNumber, w) {
     const [b1, b2] = r.teamB;
 
     // パートナー重複
-    if (players[a1].partners && players[a1].partners.has(a2)) {
-      score += w.partnerRepeat;
-    }
-    if (players[a2].partners && players[a2].partners.has(a1)) {
-      score += w.partnerRepeat;
-    }
-    if (players[b1].partners && players[b1].partners.has(b2)) {
-      score += w.partnerRepeat;
-    }
-    if (players[b2].partners && players[b2].partners.has(b1)) {
-      score += w.partnerRepeat;
-    }
+    if (players[a1].partners && players[a1].partners.has(a2)) score += w.partnerRepeat;
+    if (players[a2].partners && players[a2].partners.has(a1)) score += w.partnerRepeat;
+    if (players[b1].partners && players[b1].partners.has(b2)) score += w.partnerRepeat;
+    if (players[b2].partners && players[b2].partners.has(b1)) score += w.partnerRepeat;
 
     // 対戦相手重複
     [a1, a2].forEach(ai => {
@@ -369,5 +371,16 @@ function applyRoundResult(players, rounds, refs, benches, roundNumber) {
     const p = players[idx];
     p.rests += 1;
     p.lastRestRound = roundNumber;
+  });
+
+  // （参考用）現時点の平均値との差を記録しておくこともできる
+  const avgGames = players.reduce((s,p)=>s+p.games,0) / players.length;
+  const avgRefs  = players.reduce((s,p)=>s+p.refs ,0) / players.length;
+  const avgRests = players.reduce((s,p)=>s+p.rests,0) / players.length;
+
+  players.forEach(p => {
+    p.gamesBias = p.games - avgGames;
+    p.refsBias  = p.refs  - avgRefs;
+    p.restsBias = p.rests - avgRests;
   });
 }
