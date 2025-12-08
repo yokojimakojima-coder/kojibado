@@ -5,7 +5,8 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ff66b3",
-  "description": "バドミントンダブルスの公平な自動組み合わせアプリ - コジバド!!",
+  "orientation": "portrait-primary",
+
   "icons": [
     {
       "src": "icon-192.png",
