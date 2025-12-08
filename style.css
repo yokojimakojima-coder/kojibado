@@ -1,227 +1,187 @@
-/* ==============================================================
-   コジバド!! 2025 UIテーマ（全ページ共通）
-   --------------------------------------------------------------
-   ポップで柔らかい・スマホ対応・カードUI・アニメーション安定版
-================================================================ */
-
-
-/* --------------------------------------------------------------
-   基本設定
--------------------------------------------------------------- */
+/* ======================================================
+   基本
+====================================================== */
 body {
   font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
   background: #fff9fe;
   margin: 0;
   padding: 16px;
-  box-sizing: border-box;
 }
 
-h1, h2 {
-  margin: 0;
-  padding: 0;
-}
-
-
-/* --------------------------------------------------------------
-   タイトル「コジバド!!」
--------------------------------------------------------------- */
-.title-main {
+/* ======================================================
+   見出し
+====================================================== */
+h1 {
   text-align: center;
-  font-size: 52px;
+  font-size: 48px;
   font-weight: 900;
-  margin-top: 10px;
-  color: transparent;
-  background: linear-gradient(45deg,#ff66b3,#ffcc33,#66ff99,#66ccff,#cc99ff,#ff66b3);
-  background-size: 400% 400%;
-  -webkit-background-clip: text;
-  animation: rainbow 6s infinite linear, popin 0.8s ease-out;
+  margin: 12px 0;
+  color: #ff66b3;
+  text-shadow: 2px 2px #ffd6eb;
 }
 
-.title-bang {
-  display: inline-block;
-  animation: bangBounce 0.7s infinite ease-in-out;
+h2 {
+  font-size: 22px;
+  border-left: 6px solid #ff66b3;
+  padding-left: 8px;
+  margin-bottom: 10px;
+  color: #ff3399;
 }
 
-/* 虹色ゆらぎ */
-@keyframes rainbow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* ポップな登場 */
-@keyframes popin {
-  0% { opacity: 0; transform: scale(0.5); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-/* !! の跳ね */
-@keyframes bangBounce {
-  0%,100% { transform: translateY(0); }
-  50%     { transform: translateY(-12px); }
-}
-
-
-/* --------------------------------------------------------------
-   ナビ（players / attendance / index）
--------------------------------------------------------------- */
+/* ======================================================
+   ナビゲーション
+====================================================== */
 .top-nav {
   display: flex;
   gap: 6px;
-  margin: 12px 0 18px 0;
+  margin-bottom: 16px;
 }
 
 .top-nav a {
   flex: 1;
+  background: #ff99cc;
+  color: white;
   text-align: center;
   padding: 12px;
   border-radius: 12px;
-  text-decoration: none;
-  background: #ff99cc;
-  color: white;
   font-weight: bold;
-  font-size: 16px;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  text-decoration: none;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
 
 .top-nav a.active {
   background: #ff66b3;
 }
 
-
-/* --------------------------------------------------------------
-   コンテンツブロック
--------------------------------------------------------------- */
-.block {
-  background: #ffffff;
+/* ======================================================
+   パネル
+====================================================== */
+.panel {
+  background: white;
   padding: 16px;
-  border-radius: 16px;
-  margin-bottom: 22px;
+  border-radius: 14px;
   border: 2px solid #ffd3ec;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  margin-bottom: 18px;
 }
 
-h2 {
-  border-left: 6px solid #ff66b3;
-  padding-left: 10px;
-  margin-bottom: 12px;
-  font-size: 24px;
-}
-
-
-/* --------------------------------------------------------------
-   ボタン
--------------------------------------------------------------- */
-button,
-select {
+/* ======================================================
+   セレクト / 入力
+====================================================== */
+select, input[type="text"] {
   width: 100%;
   padding: 12px;
   border-radius: 12px;
   border: 2px solid #ffb3d9;
-  background: #ffe6f3;
+  background: #fff6fc;
   font-size: 16px;
-  margin-top: 8px;
+  margin-top: 6px;
+  margin-bottom: 10px;
 }
 
+input:focus, select:focus {
+  outline: none;
+  border-color: #ff66b3;
+  background: #ffeaf7;
+}
+
+/* ======================================================
+   ボタン
+====================================================== */
 button {
-  background: #ff99cc;
-  color: white;
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  margin-top: 10px;
   font-weight: bold;
+  color: white;
   border: none;
+  border-radius: 12px;
   cursor: pointer;
+  background: #ff99cc;
+  transition: 0.2s;
 }
 
 button:hover {
   background: #ff66b3;
 }
 
+.green { background: #8ee38e !important; }
+.green:hover { background: #5ac55a !important; }
 
-/* --------------------------------------------------------------
-   試合カードUI（index.html）
--------------------------------------------------------------- */
-.match-block {
-  background: #ffffff;
-  border: 2px solid #ffd3ec;
-  border-radius: 18px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
+.red { background: #ff6675 !important; }
+.red:hover { background: #ff334f !important; }
 
-.match-card {
-  background: #fff6fc;
-  border: 1px solid #ffb3d9;
-  border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 12px;
-}
+.pink { background: #ff99cc !important; }
+.pink:hover { background: #ff6fba !important; }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 18px;
-  margin-bottom: 6px;
-}
-
-.team {
-  background: #ffffff;
-  margin-top: 8px;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #ffd3ec;
-}
-
-.team-title {
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.team-members {
-  font-size: 18px;
-}
-
-.rest-info {
-  font-size: 18px;
-  margin-top: 10px;
-  background: #fff3fa;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #ffd3ec;
-}
-
-
-/* --------------------------------------------------------------
-   名簿管理（players.html）
--------------------------------------------------------------- */
+/* ======================================================
+   名簿・参加者チェックリスト
+====================================================== */
 .list-item {
-  background: #ffe6f3 !important;
-  border: 2px solid #ffb3d9 !important;
+  background: #ffe6f3;
+  padding: 14px;
   border-radius: 14px;
-  padding: 12px;
+  border: 2px solid #ffb3d9;
+  font-size: 20px;
   margin-bottom: 12px;
+
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
+}
+
+.list-item label {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .drag {
   font-size: 22px;
-  margin-right: 10px;
-  cursor: grab;
   color: #ff66b3;
+  cursor: grab;
 }
 
-.chk {
-  width: 22px;
-  height: 22px;
+/* ラウンド設定（from〜to 部分） */
+.range-box {
+  margin-top: 8px;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid #ffb3d9;
 }
 
+/* ======================================================
+   試合カード
+====================================================== */
+.match-round {
+  background: white;
+  padding: 16px;
+  border-radius: 14px;
+  border: 2px solid #ffd3ec;
+  margin-bottom: 18px;
+}
 
-/* --------------------------------------------------------------
-   テーブル（ステータス）
--------------------------------------------------------------- */
+.match-card {
+  background: #fff6fc;
+  border: 2px solid #ffb3d9;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+}
+
+.match-card p {
+  margin: 4px 0;
+}
+
+/* ======================================================
+   テーブル（プレイヤーステータス）
+====================================================== */
 table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 10px;
 }
 
 th {
@@ -231,25 +191,7 @@ th {
 }
 
 td {
-  background: #ffffff;
   padding: 10px;
+  background: #fff;
   border-bottom: 1px solid #ffd3ec;
-  font-size: 18px;
-}
-
-
-/* --------------------------------------------------------------
-   スマホ最適化
--------------------------------------------------------------- */
-@media (max-width: 480px) {
-  .title-main {
-    font-size: 40px;
-  }
-  .card-header {
-    flex-direction: column;
-    gap: 4px;
-  }
-  .team-members {
-    font-size: 16px;
-  }
 }
