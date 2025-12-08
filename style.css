@@ -1,126 +1,222 @@
-/* ============================================
-   コジバド!! 共通スタイル style.css
-   （スマホ優先・ポップ系デザイン）
-============================================ */
-
-/* 全体ベース */
+/* ==========================================
+   ★ 全体レイアウト
+========================================== */
 body {
-  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", system-ui, sans-serif;
+  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
   background: #fff9fe;
-  color: #333;
   margin: 0;
-  padding: 12px;
-  box-sizing: border-box;
+  padding: 16px;
 }
 
-/* 見出し共通（h2 は各ページの <style> でも上書きOK） */
-h2 {
-  margin: 0 0 10px;
-  font-size: 22px;
-  border-left: 6px solid #ff66b3;
-  padding-left: 8px;
+h1.title-main {
+  text-align: center;
+  font-size: 56px;
+  color: #ff66b3;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-shadow: 2px 2px #ffd6eb;
 }
 
-/* リンクの基本 */
-a {
-  color: inherit;
+.title-bang {
+  display: inline-block;
+  animation: bangBounce 0.8s infinite ease-in-out;
 }
 
-/* トップのタブナビゲーション */
+@keyframes bangBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ==========================================
+   ★ ナビゲーション
+========================================== */
 .top-nav {
   display: flex;
-  gap: 6px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 .top-nav a {
   flex: 1;
-  padding: 10px;
   text-align: center;
+  padding: 12px;
   background: #ff99cc;
-  color: #fff;
-  border-radius: 10px;
+  color: white;
   text-decoration: none;
+  border-radius: 10px;
+  font-size: 16px;
   font-weight: bold;
-  font-size: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
 
 .top-nav a.active {
   background: #ff66b3;
 }
 
-/* 汎用ブロックカード（各ページで .block 使用） */
+/* ==========================================
+   ★ ブロック（白背景カード）
+========================================== */
 .block {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 14px;
+  background: white;
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 20px;
   border: 2px solid #ffd3ec;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: 0px 3px 6px rgba(0,0,0,0.05);
 }
 
-/* 名簿や参加者リストの行（各ページ側で細かく上書きしてOK） */
-.list-item {
-  background: #ffe6f3;
+h2 {
+  border-left: 6px solid #ff66b3;
+  padding-left: 8px;
+  margin-top: 0;
+  font-size: 22px;
+}
+
+/* ==========================================
+   ★ セレクト・ボタン
+========================================== */
+select, button {
+  width: 100%;
+  padding: 12px;
   border-radius: 10px;
+  font-size: 18px;
+  margin-top: 10px;
   border: 2px solid #ffb3d9;
+  background: #ffe6f3;
+}
+
+button {
+  background: #ff99cc;
+  border: none;
+  color: white;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #ff66b3;
+}
+
+/* ==========================================
+   ★ 試合ブロック全体
+========================================== */
+.match-block {
+  padding: 16px;
+  border-radius: 14px;
+  border: 2px solid #ffd3ec;
+  background: #ffffff;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.match-block h3 {
+  font-size: 22px;
+  margin-top: 0;
+  margin-bottom: 14px;
+  color: #ff66b3;
+  text-shadow: 1px 1px #ffd6eb;
+}
+
+/* ==========================================
+   ★ 試合カード（TEAM表示）
+========================================== */
+.match-card {
+  background: #fff6fc;
+  border: 1px solid #ffb3d9;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+}
+
+/* ヘッダー（コート & 審判） */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.court-icon {
+  font-weight: bold;
+  color: #66aaff;
+}
+
+.ref-icon {
+  color: #ff66b3;
+  font-weight: bold;
+}
+
+/* TEAM A */
+.team {
   padding: 10px;
+  border-radius: 10px;
   margin-bottom: 10px;
 }
 
-/* ドラッグ表示用アイコン */
-.drag {
-  cursor: grab;
-  color: #ff66b3;
+.team-a {
+  background: #e0f2ff;
+  border: 1px solid #a5d8ff;
 }
 
-/* ボタンのベース（各ページの <style> で上書きしてOK） */
-button {
-  font-family: inherit;
-  cursor: pointer;
+.team-b {
+  background: #ffe0ef;
+  border: 1px solid #ffb3d6;
 }
 
-/* テーブル（プレイヤーステータスで使用） */
+.team-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.team-members {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* 休憩 */
+.rest-info {
+  background: #fff0fb;
+  border: 1px solid #ffb3e0;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 10px;
+  font-size: 18px;
+}
+
+/* ==========================================
+   ★ ステータス表
+========================================== */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 6px;
-}
-
-th, td {
-  padding: 8px;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 th {
   background: #ffe0f4;
+  padding: 8px;
 }
 
 td {
-  background: #ffffff;
+  padding: 8px;
   border-bottom: 1px solid #ffd3ec;
 }
 
-/* 試合カード系（index.html の中で追加スタイルもある） */
-.match-round {
-  margin-bottom: 14px;
+/* ==========================================
+   ★ 試合追加ボタン
+========================================== */
+.add-round-btn {
+  background: #ff99cc;
+  color: white;
+  border-radius: 12px;
+  font-size: 20px;
+  padding: 14px;
+  box-shadow: 0px 3px 6px rgba(0,0,0,0.1);
 }
 
-.match-card {
-  margin-bottom: 8px;
-}
-
-/* 入力欄のベース */
-input[type="text"],
-input[type="number"],
-select {
-  box-sizing: border-box;
-}
-
-/* スマホ向けちょい調整 */
-@media (min-width: 768px) {
-  body {
-    max-width: 640px;
-    margin: 0 auto;
-  }
+.add-round-btn:hover {
+  background: #ff66b3;
 }
