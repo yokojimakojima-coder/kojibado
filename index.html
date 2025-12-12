@@ -75,7 +75,12 @@ document.getElementById("setupBtn").onclick = () => {
   }
 
   // 🔥 ここが最重要ポイント
-  players = normalizePlayers(activeNames);
+players = normalizePlayers(activeNames).map(p => ({
+  ...p,
+  partners: new Set(),
+  opponents: new Set()
+}));
+
 
   // schedule 初期化
   const schedule = {};
@@ -140,4 +145,5 @@ function renderRound(rounds, refs) {
 
 </body>
 </html>
+
 
