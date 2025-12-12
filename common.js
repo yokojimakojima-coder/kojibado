@@ -210,3 +210,21 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
   return { rounds, refs, benches: restPlayers };
 }
+
+/* ======================================================
+   プレイヤー正規化（index.html から呼ばれる）
+====================================================== */
+function normalizePlayers(names) {
+  return names.map((name, idx) => ({
+    name,
+    idx,
+    games: 0,
+    refs: 0,
+    rests: 0,
+    partners: new Set(),
+    opponents: new Set(),
+    lastRoundPlayed: 0,
+    lastRefRound: 0,
+    lastRestRound: 0
+  }));
+}
