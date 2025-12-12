@@ -6,62 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
 <meta name="theme-color" content="#ff66b3">
-
-<style>
-h1 {
-  text-align:center;
-  font-size:42px;
-  font-weight:900;
-  color:#ff66b3;
-  text-shadow:2px 2px #ffd6eb;
-  margin:10px 0 20px;
-}
-
-.setting-block {
-  background:#fff;
-  border-radius:12px;
-  padding:15px;
-  margin-bottom:20px;
-  border:2px solid #ffd3ec;
-}
-
-.match-round {
-  background:#fff;
-  border:2px solid #ffd3ec;
-  border-radius:12px;
-  padding:15px;
-  margin-bottom:25px;
-}
-
-.match-card {
-  background:#fff6fc;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #ffb3d9;
-  margin-bottom:10px;
-}
-
-button {
-  width:100%;
-  padding:15px;
-  border:none;
-  border-radius:10px;
-  background:#ff99cc;
-  color:white;
-  font-size:18px;
-  font-weight:bold;
-  margin-top:10px;
-}
-
-button:hover {
-  background:#ff66b3;
-}
-</style>
 </head>
 
 <body>
 
-<h1>コジバド!!</h1>
+<h1 class="app-title">コジバド!!</h1>
 
 <!-- ナビ -->
 <div class="top-nav">
@@ -70,8 +19,8 @@ button:hover {
   <a class="active" href="index.html">試合作成</a>
 </div>
 
-<!-- 試合設定 -->
-<div class="setting-block">
+<!-- 設定 -->
+<div class="panel">
   <h2>試合設定</h2>
 
   <label>コート数</label>
@@ -82,36 +31,20 @@ button:hover {
     <option value="4">4コート</option>
   </select>
 
-  <button id="setupBtn">参加者を読み込み → 第1試合を作成</button>
-</div>
-
-<!-- 途中参加・途中抜け -->
-<div class="setting-block">
-  <h2>途中参加 / 途中抜け</h2>
-
-  <label>選手を選択</label>
-  <select id="changePlayer"></select>
-
-  <label>状態を選択</label>
-  <select id="changeType">
-    <option value="join">途中参加（この試合から参加）</option>
-    <option value="leave">途中抜け（この試合までで終了）</option>
-  </select>
-
-  <button id="applyChangeBtn">変更を適用</button>
+  <button id="startBtn">第1試合を作成</button>
 </div>
 
 <!-- 試合履歴 -->
-<div id="rounds" class="setting-block">
+<div id="rounds" class="panel">
   <h2>試合履歴</h2>
   <p id="noRoundMsg">まだ試合がありません。</p>
 </div>
 
-<!-- 次の試合作成（常に最後尾に配置） -->
-<div id="nextRoundContainer"></div>
+<!-- 次の試合ボタン（常に一番下） -->
+<div id="nextBtnArea"></div>
 
 <!-- ステータス -->
-<div id="playerSummary" class="setting-block" style="display:none;">
+<div id="playerSummary" class="panel" style="display:none;">
   <h2>プレイヤーステータス</h2>
   <div id="playerTable"></div>
 </div>
@@ -119,52 +52,42 @@ button:hover {
 <script src="common.js"></script>
 
 <script>
-/* ===============================
-   index.html メイン処理
-=============================== */
+/* ======================================================
+   index.html メイン処理（最終確定）
+====================================================== */
 
 let players = [];
 let roundNumber = 1;
-let schedule = {}; // { 名前: [{from,to}, ...] }
+let schedule = {};
 
-/* -----------------------------------
-   ページ読み込み時
------------------------------------ */
 window.onload = () => {
-
-  // 🚨これが今回の重要修正：前回のNextRoundボタン残りを必ず削除
-  document.getElementById("nextRoundContainer").innerHTML = "";
-
-  schedule = getSchedule();
-  document.getElementById("setupBtn").onclick = firstRound;
-  document.getElementById("applyChangeBtn").onclick = applyChange;
+  document.getElementById("startBtn").onclick = startFirstRound;
+  document.getElementById("nextBtnArea").innerHTML = "";
 };
 
-/* -----------------------------------
-   第1試合を作成
------------------------------------ */
-function firstRound() {
+/* -------------------------------
+   第1試合作成
+-------------------------------- */
+function startFirstRound() {
   const active = getActivePlayers();
   if (active.length < 4) {
     alert("参加者は4人以上必要です！");
     return;
   }
 
-  // プレイヤー初期化
-  players = active.map((n, i) => ({
-    name: n,
+  // ★ players 初期化（超重要）
+  players = active.map((name, i) => ({
+    name,
     idx: i,
     games: 0,
     refs: 0,
     rests: 0,
     partners: new Set(),
     opponents: new Set(),
-    lastRoundPlayed: 0,
-    lastRefRound: 0,
-    lastRestRound: 0
+    lastRoundPlayed: 0
   }));
 
-  // 全員 1〜999試合参加に初期化
+  // ★ 全員参加スケジュール
   schedule = {};
   players.forEach(p => {
     schedule[p.name] = [{ from: 1, to: 999 }];
@@ -173,72 +96,43 @@ function firstRound() {
 
   roundNumber = 1;
 
-  document.getElementById("rounds").innerHTML = `<h2>試合履歴</h2>`;
+  document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
   document.getElementById("playerSummary").style.display = "block";
-
-  populateChangePlayerList();
 
   createNextRound();
 }
 
-/* -----------------------------------
-   次の試合
------------------------------------ */
+/* -------------------------------
+   次の試合作成
+-------------------------------- */
 function createNextRound() {
   const courtCount = Number(document.getElementById("courtsSelect").value);
 
-  const result = generateRound(players, roundNumber, courtCount, getAiWeights(), schedule);
+  const result = generateRound(
+    players,
+    roundNumber,
+    courtCount,
+    getAiWeights(),
+    schedule
+  );
 
   if (!result) {
-    alert("これ以上公平に作れません！");
+    alert("これ以上試合を作れません！");
     return;
   }
 
   renderRound(result.rounds, result.refs, result.benches);
   renderPlayerTable();
-
   roundNumber++;
 }
 
-/* -----------------------------------
-   途中参加 / 途中抜け
------------------------------------ */
-function populateChangePlayerList() {
-  const select = document.getElementById("changePlayer");
-  select.innerHTML = "";
-  players.forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p.name;
-    opt.textContent = p.name;
-    select.appendChild(opt);
-  });
-}
-
-function applyChange() {
-  const name = document.getElementById("changePlayer").value;
-  const type = document.getElementById("changeType").value;
-
-  if (!schedule[name]) schedule[name] = [{ from: 1, to: 999 }];
-
-  const lastSeg = schedule[name][schedule[name].length - 1];
-
-  if (type === "join") {
-    lastSeg.to = roundNumber - 1;
-    schedule[name].push({ from: roundNumber, to: 999 });
-  } else if (type === "leave") {
-    lastSeg.to = roundNumber - 1;
-  }
-
-  saveSchedule(schedule);
-
-  alert("変更を反映しました！次の試合作成で適用されます。");
-}
-
-/* -----------------------------------
+/* -------------------------------
    試合表示
------------------------------------ */
+-------------------------------- */
 function renderRound(rounds, refs, benches) {
   const area = document.getElementById("rounds");
+  const noMsg = document.getElementById("noRoundMsg");
+  if (noMsg) noMsg.remove();
 
   const box = document.createElement("div");
   box.className = "match-round";
@@ -249,33 +143,35 @@ function renderRound(rounds, refs, benches) {
     const card = document.createElement("div");
     card.className = "match-card";
     card.innerHTML = `
-      <p><b>コート${i+1}</b>（審判：${players[refs[i]].name}）</p>
-      <p>Team A：${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}</p>
-      <p>Team B：${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}</p>
+      <p><b>コート${i + 1}</b>（審判：${players[refs[i]].name}）</p>
+      <p>${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}</p>
+      <p>vs</p>
+      <p>${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}</p>
     `;
     box.appendChild(card);
   });
 
   if (benches.length > 0) {
-    box.innerHTML += `<p>休憩：${benches.map(i => players[i].name).join(" / ")}</p>`;
+    box.innerHTML += `<p class="rest">休憩：${benches.map(i => players[i].name).join(" / ")}</p>`;
   }
 
   area.appendChild(box);
 
-  // 最新の下に常に配置
-  const btnArea = document.getElementById("nextRoundContainer");
-  btnArea.innerHTML = `<button onclick="createNextRound()">次の試合を作成</button>`;
+  // 次の試合ボタンを一番下に
+  document.getElementById("nextBtnArea").innerHTML = `
+    <button onclick="createNextRound()">次の試合を作成</button>
+  `;
 }
 
-/* -----------------------------------
+/* -------------------------------
    ステータス表示
------------------------------------ */
+-------------------------------- */
 function renderPlayerTable() {
   let html = `
     <table>
       <tr>
         <th>名前</th>
-        <th>試合数</th>
+        <th>試合</th>
         <th>審判</th>
         <th>休憩</th>
       </tr>
@@ -293,7 +189,6 @@ function renderPlayerTable() {
   });
 
   html += "</table>";
-
   document.getElementById("playerTable").innerHTML = html;
 }
 </script>
