@@ -1,4 +1,5 @@
-console.log("🔥 common.js 最終版 読み込まれたよ！");
+console.log("🔥 common.js 最終完全版 読み込まれたよ！");
+
 /* ======================================================
    localStorage
 ====================================================== */
@@ -20,7 +21,7 @@ function saveSchedule(s) {
 }
 
 /* ======================================================
-   players 正規化
+   players 正規化（Setを必ず持たせる）
 ====================================================== */
 
 function normalizePlayers(names) {
@@ -48,13 +49,15 @@ function isAvailableAtRound(name, roundNumber, schedule) {
 }
 
 function getAvailablePlayerIndexes(players, roundNumber, schedule) {
-  return players
-    .map((p, i) => isAvailableAtRound(p.name, roundNumber, schedule) ? i : null)
-    .filter(i => i !== null);
+  const arr = [];
+  players.forEach((p, i) => {
+    if (isAvailableAtRound(p.name, roundNumber, schedule)) arr.push(i);
+  });
+  return arr;
 }
 
 /* ======================================================
-   AI 重み
+   AI 重み（最強公平）
 ====================================================== */
 
 function getAiWeights() {
@@ -68,19 +71,30 @@ function getAiWeights() {
 }
 
 /* ======================================================
-   履歴更新
+   履歴更新（超重要：undefined完全防止）
 ====================================================== */
 
 function updateHistory(players, teamA, teamB) {
-  [[teamA[0], teamA[1]], [teamB[0], teamB[1]]].forEach(([x, y]) => {
+  if (!teamA || !teamB) return;
+
+  const pairs = [
+    [teamA[0], teamA[1]],
+    [teamB[0], teamB[1]],
+  ];
+
+  const opponents = [
+    [teamA[0], teamB[0]], [teamA[0], teamB[1]],
+    [teamA[1], teamB[0]], [teamA[1], teamB[1]],
+  ];
+
+  pairs.forEach(([x, y]) => {
+    if (!players[x] || !players[y]) return;
     players[x].partners.add(y);
     players[y].partners.add(x);
   });
 
-  [
-    [teamA[0], teamB[0]], [teamA[0], teamB[1]],
-    [teamA[1], teamB[0]], [teamA[1], teamB[1]],
-  ].forEach(([x, y]) => {
+  opponents.forEach(([x, y]) => {
+    if (!players[x] || !players[y]) return;
     players[x].opponents.add(y);
     players[y].opponents.add(x);
   });
@@ -97,11 +111,10 @@ function calcGroupScore(players, group, round, w) {
   if (players[a].partners.has(b)) score -= w.partnerBias;
   if (players[c].partners.has(d)) score -= w.partnerBias;
 
-  [a, b].forEach(x => {
-    [c, d].forEach(y => {
-      if (players[x].opponents.has(y)) score -= w.opponentBias;
-    });
-  });
+  if (players[a].opponents.has(c)) score -= w.opponentBias;
+  if (players[a].opponents.has(d)) score -= w.opponentBias;
+  if (players[b].opponents.has(c)) score -= w.opponentBias;
+  if (players[b].opponents.has(d)) score -= w.opponentBias;
 
   group.forEach(i => {
     score -= (round - players[i].lastRoundPlayed) * w.fatigueBias;
@@ -114,17 +127,27 @@ function calcGroupScore(players, group, round, w) {
    審判選択
 ====================================================== */
 
-function chooseReferee(group, players, round, refBias) {
-  return group.reduce((best, i) =>
-    players[i].refs < players[best].refs ? i : best
-  );
+function chooseReferee(group, players, refBias) {
+  let best = group[0];
+  let bestScore = Infinity;
+
+  group.forEach(i => {
+    const score = players[i].refs * refBias;
+    if (score < bestScore) {
+      bestScore = score;
+      best = i;
+    }
+  });
+
+  return best;
 }
 
 /* ======================================================
-   ラウンド生成
+   ラウンド生成（完全安定版）
 ====================================================== */
 
 function generateRound(players, roundNumber, courtCount, weights, schedule) {
+
   const activeIdx = getAvailablePlayerIndexes(players, roundNumber, schedule);
   if (activeIdx.length < 4) return null;
 
@@ -133,6 +156,7 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
   const used = new Set();
 
   for (let court = 0; court < courtCount; court++) {
+
     let best = null;
     let bestScore = -Infinity;
 
@@ -140,6 +164,7 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
       for (let b = a + 1; b < activeIdx.length; b++) {
         for (let c = b + 1; c < activeIdx.length; c++) {
           for (let d = c + 1; d < activeIdx.length; d++) {
+
             const group = [activeIdx[a], activeIdx[b], activeIdx[c], activeIdx[d]];
             if (group.some(x => used.has(x))) continue;
 
@@ -155,31 +180,36 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
     if (!best) break;
 
-    const ref = chooseReferee(best, players, roundNumber, weights.refBias);
-    const play = best.filter(i => i !== ref);
+    const refIndex = chooseReferee(best, players, weights.refBias);
+    const play = best.filter(i => i !== refIndex);
     if (play.length !== 4) continue;
 
-    rounds.push({ teamA: [play[0], play[1]], teamB: [play[2], play[3]] });
-    refs.push(ref);
+    const teamA = [play[0], play[1]];
+    const teamB = [play[2], play[3]];
 
-    used.add(ref);
+    rounds.push({ teamA, teamB });
+    refs.push(refIndex);
+
+    used.add(refIndex);
     play.forEach(i => used.add(i));
 
-    players[ref].refs++;
-    players[ref].lastRefRound = roundNumber;
+    players[refIndex].refs++;
+    players[refIndex].lastRefRound = roundNumber;
 
     play.forEach(i => {
       players[i].games++;
       players[i].lastRoundPlayed = roundNumber;
     });
 
-    updateHistory(players, [play[0], play[1]], [play[2], play[3]]);
+    updateHistory(players, teamA, teamB);
   }
 
-  activeIdx.filter(i => !used.has(i)).forEach(i => {
-    players[i].rests++;
-    players[i].lastRestRound = roundNumber;
-  });
+  activeIdx
+    .filter(i => !used.has(i))
+    .forEach(i => {
+      players[i].rests++;
+      players[i].lastRestRound = roundNumber;
+    });
 
   return { rounds, refs };
 }
