@@ -17,67 +17,88 @@
   <a href="index.html">試合作成</a>
 </div>
 
-<!-- 名簿パネル -->
 <div class="panel">
   <h2>名前を追加</h2>
 
-  <label class="label">名前</label>
-  <input id="newPlayer" type="text" placeholder="例：コジコジ">
+  <input
+    id="newPlayer"
+    type="text"
+    placeholder="名前を入力（例：コジコジ）"
+    style="width:100%; padding:12px; font-size:16px; border-radius:10px; border:2px solid #ffb3d9;"
+  >
 
-  <button class="btn primary" onclick="addPlayer()">追加</button>
+  <button class="btn primary" onclick="addPlayer()" style="margin-top:10px;">
+    追加する
+  </button>
 </div>
 
-<!-- 名簿一覧 -->
 <div class="panel">
   <h2>名簿一覧</h2>
-
   <ul id="playerList" style="list-style:none; padding:0; margin:0;"></ul>
-
-  <p class="muted">※ 名簿は自動保存されます</p>
+  <p class="muted">※ ここに登録された名前が参加チェックに反映されます</p>
 </div>
 
 <script src="common.js"></script>
 
 <script>
-/* ===============================
-   名簿管理ロジック
-=============================== */
+/* =========================
+   初期表示
+========================= */
+window.onload = () => {
+  loadPlayers();
+};
 
+/* =========================
+   名簿表示
+========================= */
 function loadPlayers() {
   const list = document.getElementById("playerList");
   list.innerHTML = "";
 
-  const players = getAllPlayers();
+  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
+
+  if (players.length === 0) {
+    list.innerHTML = `<li class="muted">まだ登録がありません</li>`;
+    return;
+  }
 
   players.forEach((name, index) => {
     const li = document.createElement("li");
-    li.className = "match-card";
+    li.style.marginBottom = "10px";
 
     li.innerHTML = `
-      <div class="teams">
-        <div class="team team-a">${name}</div>
-        <button class="btn" style="width:auto; background:#ff6675;"
-          onclick="deletePlayer(${index})">削除</button>
+      <div class="match-card">
+        <div class="teams">
+          <div class="team team-a">${name}</div>
+          <button
+            onclick="deletePlayer(${index})"
+            style="background:#ff6675; color:white; border:none; border-radius:10px; padding:6px 12px; font-weight:bold;"
+          >
+            削除
+          </button>
+        </div>
       </div>
     `;
-
     list.appendChild(li);
   });
 }
 
+/* =========================
+   追加
+========================= */
 function addPlayer() {
   const input = document.getElementById("newPlayer");
   const name = input.value.trim();
 
   if (!name) {
-    alert("名前を入力してね🥺");
+    alert("名前を入力してね💦");
     return;
   }
 
-  const players = getAllPlayers();
+  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
 
   if (players.includes(name)) {
-    alert("その名前はもうあるよ💦");
+    alert("その名前はもうあるよ！");
     return;
   }
 
@@ -88,18 +109,15 @@ function addPlayer() {
   loadPlayers();
 }
 
+/* =========================
+   削除
+========================= */
 function deletePlayer(index) {
-  if (!confirm("ほんとに削除する？")) return;
-
-  const players = getAllPlayers();
+  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
   players.splice(index, 1);
   localStorage.setItem("allPlayers", JSON.stringify(players));
-
   loadPlayers();
 }
-
-/* 初期表示 */
-loadPlayers();
 </script>
 
 </body>
