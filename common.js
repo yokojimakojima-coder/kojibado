@@ -220,12 +220,11 @@ function normalizePlayers(names) {
     name,
     idx,
     games: 0,
-    refs: 0,
     rests: 0,
+    refs: 0,
     partners: new Set(),
     opponents: new Set(),
     lastRoundPlayed: 0,
-    lastRefRound: 0,
     lastRestRound: 0
   }));
 }
