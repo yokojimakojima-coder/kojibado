@@ -1,210 +1,194 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>コジバド!! - 試合作成</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#ff66b3" />
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <h1 class="title">コジバド!!</h1>
+<h1 class="title">コジバド!!</h1>
 
-  <!-- ナビ -->
-  <div class="top-nav">
-    <a href="players.html">名簿管理</a>
-    <a href="attendance.html">参加チェック</a>
-    <a class="active" href="index.html">試合作成</a>
-  </div>
+<div class="top-nav">
+  <a href="players.html">名簿管理</a>
+  <a href="attendance.html">参加チェック</a>
+  <a class="active" href="index.html">試合作成</a>
+</div>
 
-  <!-- 設定 -->
-  <div class="panel">
-    <h2>試合設定</h2>
+<!-- 設定 -->
+<div class="panel">
+  <h2>試合設定</h2>
 
-    <label class="label">コート数</label>
-    <select id="courtsSelect" class="select">
-      <option value="1">1コート</option>
-      <option value="2">2コート</option>
-      <option value="3">3コート</option>
-      <option value="4">4コート</option>
-    </select>
+  <label>コート数</label>
+  <select id="courtsSelect">
+    <option value="1">1コート</option>
+    <option value="2">2コート</option>
+  </select>
 
-    <button id="setupBtn" class="btn primary">第1試合を作成</button>
-  </div>
+  <button class="btn primary" id="setupBtn">第1試合を作成</button>
+</div>
 
-  <!-- 試合履歴 -->
-  <div id="rounds" class="panel">
-    <h2>試合履歴</h2>
-    <p id="noRoundMsg" class="muted">まだ試合がありません。</p>
-  </div>
+<!-- 試合履歴 -->
+<div class="panel" id="rounds">
+  <h2>試合履歴</h2>
+  <p class="muted">まだ試合がありません</p>
+</div>
 
-  <!-- 次の試合ボタン（常に最新試合の下） -->
-  <div id="nextRoundContainer"></div>
+<!-- 次の試合ボタン（最新試合の下） -->
+<div id="nextRoundContainer"></div>
 
-  <!-- ステータス -->
-  <div id="playerSummary" class="panel" style="display:none;">
-    <h2>プレイヤー状況</h2>
-    <div id="playerTable"></div>
-  </div>
+<!-- ステータス -->
+<div class="panel" id="playerSummary" style="display:none;">
+  <h2>プレイヤーステータス</h2>
+  <div id="playerTable"></div>
+</div>
 
-  <!-- 共通ロジック -->
-  <script src="common.js"></script>
+<script src="common.js"></script>
 
-  <script>
-    let players = [];
-    let roundNumber = 1;
-    let schedule = {};
+<script>
+let players = [];
+let roundNumber = 1;
+let schedule = {};
 
-    // 起動
-    window.onload = () => {
-      document.getElementById("setupBtn").onclick = setupAndCreateFirstRound;
-    };
+/* ===============================
+   第1試合
+=============================== */
+document.getElementById("setupBtn").onclick = () => {
+  const activeNames = getActivePlayers();
 
-    function setupAndCreateFirstRound() {
-      const activeNames = getActivePlayers();
+  if (!activeNames || activeNames.length < 4) {
+    alert("参加者は4人以上必要だよ💦");
+    return;
+  }
 
-      if (!activeNames || activeNames.length < 4) {
-        alert("参加者は4人以上必要だよ💦（参加チェックで選んでね）");
-        return;
-      }
+  // players 正規化（Set持ち）
+  players = normalizePlayers(activeNames);
 
-      // players 初期化（Set持ち）
-      players = activeNames.map((name, idx) => ({
-        name,
-        idx,
-        games: 0,
-        refs: 0,
-        rests: 0,
-        partners: new Set(),
-        opponents: new Set(),
-        lastRoundPlayed: 0,
-        lastRefRound: 0,
-        lastRestRound: 0
-      }));
+  // 全員ずっと参加できる前提
+  schedule = {};
+  players.forEach(p => {
+    schedule[p.name] = [{ from: 1, to: 999 }];
+  });
+  saveSchedule(schedule);
 
-      // 参加スケジュール（全員参加の前提。途中参加/抜けは後で拡張OK）
-      schedule = {};
-      players.forEach(p => {
-        schedule[p.name] = [{ from: 1, to: 999 }];
-      });
-      saveSchedule(schedule);
+  roundNumber = 1;
+  document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
+  document.getElementById("nextRoundContainer").innerHTML = "";
+  document.getElementById("playerSummary").style.display = "block";
 
-      roundNumber = 1;
+  createNextRound();
+};
 
-      // 表示を初期化
-      const roundsDiv = document.getElementById("rounds");
-      roundsDiv.innerHTML = `<h2>試合履歴</h2>`;
-      document.getElementById("nextRoundContainer").innerHTML = "";
-      document.getElementById("playerSummary").style.display = "block";
+/* ===============================
+   次の試合
+=============================== */
+function createNextRound() {
+  const courtCount = Number(document.getElementById("courtsSelect").value);
 
-      // 第1試合
-      createNextRound();
-    }
+  // 念のため Set を保証（localStorage事故対策）
+  players = players.map(p => ({
+    ...p,
+    partners: p.partners instanceof Set ? p.partners : new Set(),
+    opponents: p.opponents instanceof Set ? p.opponents : new Set()
+  }));
 
-    function createNextRound() {
-      // 念のため Set を再保証（コピペ事故・混入対策）
-      players = players.map(p => ({
-        ...p,
-        partners: p.partners instanceof Set ? p.partners : new Set(p.partners || []),
-        opponents: p.opponents instanceof Set ? p.opponents : new Set(p.opponents || [])
-      }));
+  const result = generateRound(
+    players,
+    roundNumber,
+    courtCount,
+    getAiWeights(),
+    getSchedule()
+  );
 
-      const courtCount = Number(document.getElementById("courtsSelect").value);
+  if (!result) {
+    alert("もう公平に組めないかも🥺");
+    return;
+  }
 
-      const result = generateRound(
-        players,
-        roundNumber,
-        courtCount,
-        getAiWeights(),
-        getSchedule()
-      );
+  renderRound(result.rounds, result.refs, result.benches);
+  renderPlayerTable();
 
-      if (!result || !result.rounds || result.rounds.length === 0) {
-        alert("もう組めないかも🥺（参加者数とコート数を確認してね）");
-        return;
-      }
+  roundNumber++;
+}
 
-      renderRound(result.rounds, result.refs);
-      renderPlayerTable();
+/* ===============================
+   表示：試合カード
+=============================== */
+function renderRound(rounds, refs, benches) {
+  const area = document.getElementById("rounds");
 
-      roundNumber++;
-    }
+  const box = document.createElement("div");
+  box.className = "match-round";
+  box.innerHTML = `<h3>第${roundNumber}試合</h3>`;
 
-    // ===== 試合カード表示（ここが完成形） =====
-    function renderRound(rounds, refs) {
-      const roundsDiv = document.getElementById("rounds");
-      const noMsg = document.getElementById("noRoundMsg");
-      if (noMsg) noMsg.remove();
+  rounds.forEach((r, i) => {
+    const card = document.createElement("div");
+    card.className = "match-card";
 
-      const box = document.createElement("div");
-      box.className = "match-round";
-      box.innerHTML = `<h3 class="round-title">第${roundNumber}試合</h3>`;
+    card.innerHTML = `
+      <div class="court">コート${i + 1}</div>
+      <div class="teams">
+        <div class="team team-a">
+          ${players[r.teamA[0]].name}<br>
+          ${players[r.teamA[1]].name}
+        </div>
+        <div class="vs">VS</div>
+        <div class="team team-b">
+          ${players[r.teamB[0]].name}<br>
+          ${players[r.teamB[1]].name}
+        </div>
+      </div>
+      <div class="ref">審判：${players[refs[i]].name}</div>
+    `;
 
-      rounds.forEach((r, i) => {
-        const card = document.createElement("div");
-        card.className = "match-card";
+    box.appendChild(card);
+  });
 
-        const a1 = players[r.teamA[0]].name;
-        const a2 = players[r.teamA[1]].name;
-        const b1 = players[r.teamB[0]].name;
-        const b2 = players[r.teamB[1]].name;
-        const ref = players[refs[i]].name;
+  if (benches && benches.length > 0) {
+    const rest = document.createElement("div");
+    rest.className = "rest";
+    rest.textContent = "休憩：" + benches.map(i => players[i].name).join(" / ");
+    box.appendChild(rest);
+  }
 
-        card.innerHTML = `
-          <div class="match-head">
-            <span class="court-badge">コート${i + 1}</span>
-            <span class="ref-badge">審判：${ref}</span>
-          </div>
-          <div class="teams">
-            <div class="team team-a">${a1} <span class="amp">&amp;</span> ${a2}</div>
-            <div class="vs">VS</div>
-            <div class="team team-b">${b1} <span class="amp">&amp;</span> ${b2}</div>
-          </div>
-        `;
+  area.appendChild(box);
 
-        box.appendChild(card);
-      });
+  // 次の試合ボタンは「最新試合の下」
+  document.getElementById("nextRoundContainer").innerHTML =
+    `<button class="btn primary" onclick="createNextRound()">次の試合を作成</button>`;
+}
 
-      roundsDiv.appendChild(box);
+/* ===============================
+   ステータス表
+=============================== */
+function renderPlayerTable() {
+  let html = `
+    <table>
+      <tr>
+        <th>名前</th>
+        <th>試合</th>
+        <th>審判</th>
+        <th>休憩</th>
+      </tr>
+  `;
 
-      // 最新試合の下にボタン
-      document.getElementById("nextRoundContainer").innerHTML = `
-        <button class="btn primary" onclick="createNextRound()">次の試合を作成</button>
-      `;
-    }
+  players.forEach(p => {
+    html += `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.games}</td>
+        <td>${p.refs}</td>
+        <td>${p.rests}</td>
+      </tr>
+    `;
+  });
 
-    // ===== ステータス表示（試合/審判/休憩） =====
-    function renderPlayerTable() {
-      let html = `
-        <table class="status-table">
-          <thead>
-            <tr>
-              <th>名前</th>
-              <th>試合</th>
-              <th>審判</th>
-              <th>休憩</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
-      players.forEach(p => {
-        html += `
-          <tr>
-            <td class="name-cell">${p.name}</td>
-            <td>${p.games}</td>
-            <td>${p.refs}</td>
-            <td>${p.rests}</td>
-          </tr>
-        `;
-      });
-
-      html += `</tbody></table>`;
-      document.getElementById("playerTable").innerHTML = html;
-    }
-  </script>
+  html += "</table>";
+  document.getElementById("playerTable").innerHTML = html;
+}
+</script>
 
 </body>
 </html>
