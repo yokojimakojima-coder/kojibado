@@ -92,6 +92,8 @@ document.getElementById("setupBtn").onclick = () => {
 
 // 次の試合作成
 function createNextRound() {
+  console.log("🔥 players 中身:", players); // ←この1行だけ追加
+
   const courtCount = Number(document.getElementById("courtsSelect").value);
 
   const result = generateRound(
@@ -102,8 +104,8 @@ function createNextRound() {
     getSchedule()
   );
 
-  if (!result || result.rounds.length === 0) {
-    alert("これ以上組めないかも🥺");
+  if (!result) {
+    alert("もう組めないかも🥺");
     return;
   }
 
@@ -138,3 +140,4 @@ function renderRound(rounds, refs) {
 
 </body>
 </html>
+
