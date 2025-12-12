@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>コジバド!! - 試合作成</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>コジバド!! - 試合作成</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -17,7 +17,6 @@
   <a class="active" href="index.html">試合作成</a>
 </div>
 
-<!-- 試合設定 -->
 <div class="setting-block">
   <h2>試合設定</h2>
 
@@ -30,25 +29,30 @@
   <button id="setupBtn">第1試合を作成</button>
 </div>
 
-<!-- 試合履歴 -->
 <div id="rounds" class="setting-block">
   <h2>試合履歴</h2>
 </div>
 
-<!-- 次の試合 -->
 <div id="nextRoundContainer"></div>
 
-<!-- common.js（キャッシュ殺し） -->
-<script src="common.js?v=final20251212"></script>
+<!-- 共通ロジック -->
+<script src="common.js"></script>
 
 <script>
-/* =====================================================
-   💣 最終兵器：index.html 内で完全初期化
-===================================================== */
+let players = [];
+let roundNumber = 1;
+let schedule = {};
 
-// 🔥 絶対に壊れない player 生成
-function normalizePlayers(names) {
-  return names.map((name, idx) => ({
+document.getElementById("setupBtn").onclick = () => {
+  const activeNames = getActivePlayers();
+
+  if (!activeNames || activeNames.length < 4) {
+    alert("参加者は4人以上必要だよ💦");
+    return;
+  }
+
+  // activeNames → playersオブジェクト化（重要）
+  players = activeNames.map((name, idx) => ({
     name,
     idx,
     games: 0,
@@ -60,30 +64,11 @@ function normalizePlayers(names) {
     lastRefRound: 0,
     lastRestRound: 0
   }));
-}
 
-let players = [];
-let roundNumber = 1;
+  console.log("🔥 初期players", players);
 
-// 第1試合作成
-document.getElementById("setupBtn").onclick = () => {
-  const activeNames = getActivePlayers();
-
-  if (!activeNames || activeNames.length < 4) {
-    alert("参加者は4人以上必要だよ💦");
-    return;
-  }
-
-  // 🔥 ここが最重要ポイント
-players = normalizePlayers(activeNames).map(p => ({
-  ...p,
-  partners: new Set(),
-  opponents: new Set()
-}));
-
-
-  // schedule 初期化
-  const schedule = {};
+  // 全員常に参加できる前提のスケジュール
+  schedule = {};
   players.forEach(p => {
     schedule[p.name] = [{ from: 1, to: 999 }];
   });
@@ -91,13 +76,20 @@ players = normalizePlayers(activeNames).map(p => ({
 
   roundNumber = 1;
   document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
+  document.getElementById("nextRoundContainer").innerHTML = "";
 
   createNextRound();
 };
 
-// 次の試合作成
 function createNextRound() {
-  console.log("🔥 players 中身:", players); // ←この1行だけ追加
+  console.log("🔥 players直前", players);
+
+  // 念のため Set を再保証（localStorage地雷回避）
+  players = players.map(p => ({
+    ...p,
+    partners: p.partners instanceof Set ? p.partners : new Set(),
+    opponents: p.opponents instanceof Set ? p.opponents : new Set()
+  }));
 
   const courtCount = Number(document.getElementById("courtsSelect").value);
 
@@ -118,7 +110,6 @@ function createNextRound() {
   roundNumber++;
 }
 
-// 表示
 function renderRound(rounds, refs) {
   const box = document.createElement("div");
   box.className = "match-round";
@@ -128,9 +119,9 @@ function renderRound(rounds, refs) {
     box.innerHTML += `
       <p>
         コート${i + 1}：
-        ${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}
+        ${players[r.teamA[0]].name} & ${players[r.teamA[1]].name}
         vs
-        ${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}
+        ${players[r.teamB[0]].name} & ${players[r.teamB[1]].name}
         （審判：${players[refs[i]].name}）
       </p>
     `;
@@ -145,5 +136,3 @@ function renderRound(rounds, refs) {
 
 </body>
 </html>
-
-
