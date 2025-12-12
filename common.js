@@ -1,4 +1,5 @@
 console.log("🔥 common.js 最新版 読み込まれてるよ！");
+
 /* ======================================================
    共通：localStorage
 ====================================================== */
@@ -21,17 +22,18 @@ function saveSchedule(s) {
 
 /* ======================================================
    重要：players配列の正規化（Setを必ず持たせる）
+   ※ normalizePlayers は1個だけにする（上書き事故防止）
 ====================================================== */
 
-function normalizePlayers(activeNames) {
-  return activeNames.map((name, idx) => ({
+function normalizePlayers(names) {
+  return names.map((name, idx) => ({
     name,
     idx,
     games: 0,
     refs: 0,
     rests: 0,
-    partners: new Set(),      // ← これが無いと死ぬ
-    opponents: new Set(),     // ← これも
+    partners: new Set(),
+    opponents: new Set(),
     lastRoundPlayed: 0,
     lastRefRound: 0,
     lastRestRound: 0,
@@ -78,6 +80,7 @@ function updateHistory(players, teamA, teamB) {
     [teamA[0], teamA[1]],
     [teamB[0], teamB[1]],
   ];
+
   const opponents = [
     [teamA[0], teamB[0]], [teamA[0], teamB[1]],
     [teamA[1], teamB[0]], [teamA[1], teamB[1]],
@@ -177,9 +180,11 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
     if (!best) break;
 
     const refIndex = chooseReferee(best, players, roundNumber, weights.refBias);
-    const playMembers = best.filter(i => i !== refIndex);
 
-    // 4人で試合（審判はこの試合に入れない）
+    // 審判はその試合に入れないので、残り4人を作る
+    const playMembers = best.filter(i => i !== refIndex);
+    if (playMembers.length < 4) continue; // 念のため
+
     const teamA = [playMembers[0], playMembers[1]];
     const teamB = [playMembers[2], playMembers[3]];
 
@@ -198,7 +203,7 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
       players[i].lastRoundPlayed = roundNumber;
     });
 
-    // 履歴更新は「1試合につき1回」だけ！（ここ大事）
+    // 履歴更新（1試合につき1回）
     updateHistory(players, teamA, teamB);
   }
 
@@ -211,21 +216,3 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
   return { rounds, refs, benches: restPlayers };
 }
-
-/* ======================================================
-   プレイヤー正規化（index.html から呼ばれる）
-====================================================== */
-function normalizePlayers(names) {
-  return names.map((name, idx) => ({
-    name,
-    idx,
-    games: 0,
-    rests: 0,
-    refs: 0,
-    partners: new Set(),
-    opponents: new Set(),
-    lastRoundPlayed: 0,
-    lastRestRound: 0
-  }));
-}
-
