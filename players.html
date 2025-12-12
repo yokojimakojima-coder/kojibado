@@ -1,47 +1,15 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>名簿管理</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
-
-<style>
-h1 {
-  text-align:center;
-  font-size:42px;
-  font-weight:900;
-  color:#ff66b3;
-  text-shadow:2px 2px #ffd6eb;
-  margin:10px 0 20px;
-}
-
-.list-item {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px;
-  background:white;
-  border:1px solid #ffd3ec;
-  border-radius:8px;
-  margin-bottom:6px;
-}
-
-.list-item span {
-  font-size:18px;
-}
-
-.list-item button {
-  width:70px;
-  padding:6px;
-  font-size:14px;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>コジバド!! - 名簿管理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1>名簿管理</h1>
+<h1 class="title">コジバド!!</h1>
 
 <div class="top-nav">
   <a class="active" href="players.html">名簿管理</a>
@@ -49,84 +17,89 @@ h1 {
   <a href="index.html">試合作成</a>
 </div>
 
-<div class="setting-block">
-  <h2>選手を追加</h2>
-  <input id="playerName" placeholder="名前を入力" style="width:100%; padding:12px; font-size:18px;">
-  <button id="addBtn">追加</button>
+<!-- 名簿パネル -->
+<div class="panel">
+  <h2>名前を追加</h2>
+
+  <label class="label">名前</label>
+  <input id="newPlayer" type="text" placeholder="例：コジコジ">
+
+  <button class="btn primary" onclick="addPlayer()">追加</button>
 </div>
 
-<div class="setting-block">
-  <h2>名簿（ドラッグで並び替え可）</h2>
-  <div id="playerList"></div>
+<!-- 名簿一覧 -->
+<div class="panel">
+  <h2>名簿一覧</h2>
+
+  <ul id="playerList" style="list-style:none; padding:0; margin:0;"></ul>
+
+  <p class="muted">※ 名簿は自動保存されます</p>
 </div>
 
-<button id="saveBtn" style="background:#90ee90;">名簿保存</button>
+<script src="common.js"></script>
 
 <script>
-/* -------------------------
-     名簿を読み込んで表示
-------------------------- */
+/* ===============================
+   名簿管理ロジック
+=============================== */
+
 function loadPlayers() {
   const list = document.getElementById("playerList");
   list.innerHTML = "";
 
-  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
+  const players = getAllPlayers();
 
   players.forEach((name, index) => {
-    const div = document.createElement("div");
-    div.className = "list-item";
+    const li = document.createElement("li");
+    li.className = "match-card";
 
-    div.innerHTML = `
-      <span>${name}</span>
-      <button onclick="deletePlayer(${index})">削除</button>
+    li.innerHTML = `
+      <div class="teams">
+        <div class="team team-a">${name}</div>
+        <button class="btn" style="width:auto; background:#ff6675;"
+          onclick="deletePlayer(${index})">削除</button>
+      </div>
     `;
 
-    list.appendChild(div);
+    list.appendChild(li);
   });
 }
 
-/* -------------------------
-     削除
-------------------------- */
-function deletePlayer(i) {
-  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
-  players.splice(i, 1);
-  localStorage.setItem("allPlayers", JSON.stringify(players));
-  loadPlayers();
-}
+function addPlayer() {
+  const input = document.getElementById("newPlayer");
+  const name = input.value.trim();
 
-/* -------------------------
-     追加
-------------------------- */
-document.getElementById("addBtn").onclick = () => {
-  const name = document.getElementById("playerName").value.trim();
-  if (!name) return alert("名前を入力してください");
+  if (!name) {
+    alert("名前を入力してね🥺");
+    return;
+  }
 
-  const players = JSON.parse(localStorage.getItem("allPlayers") || "[]");
+  const players = getAllPlayers();
 
   if (players.includes(name)) {
-    alert("すでに存在しています");
+    alert("その名前はもうあるよ💦");
     return;
   }
 
   players.push(name);
   localStorage.setItem("allPlayers", JSON.stringify(players));
 
-  document.getElementById("playerName").value = "";
+  input.value = "";
   loadPlayers();
-};
+}
 
-/* 保存ボタン（形式だけ） */
-document.getElementById("saveBtn").onclick = () => {
-  alert("保存しました！");
-};
+function deletePlayer(index) {
+  if (!confirm("ほんとに削除する？")) return;
 
-/* -------------------------
-     初期ロード
-------------------------- */
-window.onload = () => {
+  const players = getAllPlayers();
+  players.splice(index, 1);
+  localStorage.setItem("allPlayers", JSON.stringify(players));
+
   loadPlayers();
-};
+}
+
+/* 初期表示 */
+loadPlayers();
 </script>
 
 </body>
