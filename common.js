@@ -1,7 +1,7 @@
 console.log("🔥 common.js 最新版 読み込まれてるよ！");
 
 /* ======================================================
-   共通：localStorage
+   共通：localStorage 操作
 ====================================================== */
 
 function getAllPlayers() {
@@ -21,8 +21,7 @@ function saveSchedule(s) {
 }
 
 /* ======================================================
-   重要：players配列の正規化（Setを必ず持たせる）
-   ※ normalizePlayers は1個だけにする（上書き事故防止）
+   players 正規化（Setを必ず持たせる）
 ====================================================== */
 
 function normalizePlayers(names) {
@@ -41,7 +40,7 @@ function normalizePlayers(names) {
 }
 
 /* ======================================================
-   そのラウンドに参加できるか？
+   スケジュール判定
 ====================================================== */
 
 function isAvailableAtRound(name, roundNumber, schedule) {
@@ -58,21 +57,21 @@ function getAvailablePlayerIndexes(players, roundNumber, schedule) {
 }
 
 /* ======================================================
-   最強公平モードのパラメータ
+   最強公平モードの重み
 ====================================================== */
 
 function getAiWeights() {
   return {
-    partnerBias: 15,
-    opponentBias: 12,
-    fatigueBias: 1.2,
-    refBias: 2.0,
-    restBias: 2.0,
+    partnerBias: 15,    // 同ペア強烈回避
+    opponentBias: 12,   // 同対戦強烈回避
+    fatigueBias: 1.2,  // 最近出てない人を少し優先
+    refBias: 2.0,      // 審判偏り防止
+    restBias: 2.0,     // 休憩偏り防止
   };
 }
 
 /* ======================================================
-   ペア/対戦 履歴更新（Setには idx を入れる）
+   ペア・対戦履歴の更新
 ====================================================== */
 
 function updateHistory(players, teamA, teamB) {
@@ -106,32 +105,31 @@ function calcGroupScore(players, group, round, w) {
 
   const a = group[0], b = group[1], c = group[2], d = group[3];
 
-  // ペア被り（強く回避）
+  // ペア被り
   if (players[a].partners.has(b)) score -= w.partnerBias;
   if (players[c].partners.has(d)) score -= w.partnerBias;
 
-  // 対戦被り（強く回避）
+  // 対戦被り
   if (players[a].opponents.has(c)) score -= w.opponentBias;
   if (players[a].opponents.has(d)) score -= w.opponentBias;
   if (players[b].opponents.has(c)) score -= w.opponentBias;
   if (players[b].opponents.has(d)) score -= w.opponentBias;
 
-  // 出場間隔（最近出てない人を少し優先）
+  // 出場間隔
   group.forEach(i => {
     score -= (round - players[i].lastRoundPlayed) * w.fatigueBias;
   });
 
-  // ちょいランダム（同点割れ）
-  return score + Math.random() * 0.01;
+  return score + Math.random() * 0.01; // 同点割れ防止
 }
 
 /* ======================================================
-   審判選択
+   審判選択（セルフジャッジ）
 ====================================================== */
 
 function chooseReferee(group, players, round, refBias) {
   let best = group[0];
-  let bestScore = 999999;
+  let bestScore = Infinity;
 
   group.forEach(i => {
     const score = players[i].refs * refBias;
@@ -145,7 +143,7 @@ function chooseReferee(group, players, round, refBias) {
 }
 
 /* ======================================================
-   ラウンド生成（最強公平）
+   ラウンド生成（★完全安定版★）
 ====================================================== */
 
 function generateRound(players, roundNumber, courtCount, weights, schedule) {
@@ -158,12 +156,13 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
   for (let court = 0; court < courtCount; court++) {
     let best = null;
-    let bestScore = -999999;
+    let bestScore = -Infinity;
 
     for (let a = 0; a < activeIdx.length; a++) {
       for (let b = a + 1; b < activeIdx.length; b++) {
         for (let c = b + 1; c < activeIdx.length; c++) {
           for (let d = c + 1; d < activeIdx.length; d++) {
+
             const group = [activeIdx[a], activeIdx[b], activeIdx[c], activeIdx[d]];
             if (group.some(x => used.has(x))) continue;
 
@@ -181,29 +180,23 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
     const refIndex = chooseReferee(best, players, roundNumber, weights.refBias);
 
-    // 審判はその試合に入れないので、残り4人を作る
-    const playMembers = best.filter(i => i !== refIndex);
-    if (playMembers.length < 4) continue; // 念のため
-
-    const teamA = [playMembers[0], playMembers[1]];
-    const teamB = [playMembers[2], playMembers[3]];
+    const teamA = [best[0], best[1]];
+    const teamB = [best[2], best[3]];
 
     rounds.push({ teamA, teamB });
     refs.push(refIndex);
 
-    used.add(refIndex);
-    playMembers.forEach(i => used.add(i));
+    best.forEach(i => used.add(i));
 
     // カウント更新
     players[refIndex].refs++;
     players[refIndex].lastRefRound = roundNumber;
 
-    playMembers.forEach(i => {
+    best.forEach(i => {
       players[i].games++;
       players[i].lastRoundPlayed = roundNumber;
     });
 
-    // 履歴更新（1試合につき1回）
     updateHistory(players, teamA, teamB);
   }
 
