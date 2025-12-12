@@ -1,177 +1,210 @@
-/* ========================================
-   コジバド!! 全体UI / 共通デザイン
-======================================== */
-
+/* ===============================
+   全体
+=============================== */
 body {
-  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
-  background: #fff9fe;
   margin: 0;
-  padding: 16px;
+  padding: 0;
+  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", "Meiryo", sans-serif;
+  background: #fff7fb;
+  color: #444;
 }
 
-/* ====== タイトル ====== */
-h1 {
+.title {
   text-align: center;
-  font-size: 42px;
+  font-size: 44px;
   font-weight: 900;
   color: #ff66b3;
+  margin: 20px 0 10px;
   text-shadow: 2px 2px #ffd6eb;
-  margin: 10px 0 25px 0;
 }
 
-h2 {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  border-left: 6px solid #ff66b3;
-  padding-left: 10px;
-  color: #ff66b3;
-}
-
-h3 {
-  color: #ff66b3;
-  margin-bottom: 10px;
-}
-
-/* ====== ナビゲーション ====== */
+/* ===============================
+   ナビ
+=============================== */
 .top-nav {
   display: flex;
-  gap: 8px;
-  margin-bottom: 18px;
+  justify-content: space-around;
+  background: #ff99cc;
+  padding: 10px 0;
+  margin-bottom: 20px;
 }
 
 .top-nav a {
-  flex: 1;
-  padding: 12px;
-  text-align: center;
-  background: #ff99cc;
   color: white;
-  border-radius: 10px;
   text-decoration: none;
   font-weight: bold;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  padding: 6px 12px;
+  border-radius: 20px;
 }
 
 .top-nav a.active {
   background: #ff66b3;
 }
 
-/* ========================================
-   ブロック（カード風の囲み）
-======================================== */
-.block, .setting-block, .match-round {
+/* ===============================
+   パネル共通
+=============================== */
+.panel {
   background: #ffffff;
+  border-radius: 16px;
   padding: 16px;
-  border-radius: 14px;
+  margin: 16px;
   border: 2px solid #ffd3ec;
-  margin-bottom: 20px;
 }
 
-/* ========================================
-   テーブル
-======================================== */
-table {
+.panel h2 {
+  margin-top: 0;
+  color: #ff66b3;
+}
+
+/* ===============================
+   フォーム
+=============================== */
+.label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.select,
+input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid #ffd3ec;
+  margin-top: 5px;
+  font-size: 16px;
+}
+
+/* ===============================
+   ボタン
+=============================== */
+.btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: #ff99cc;
+  color: white;
+}
+
+.btn.primary:hover {
+  background: #ff66b3;
+}
+
+/* ===============================
+   試合ラウンド
+=============================== */
+.match-round {
+  margin-top: 16px;
+}
+
+.round-title {
+  color: #ff66b3;
+  margin-bottom: 10px;
+}
+
+/* ===============================
+   試合カード
+=============================== */
+.match-card {
+  background: #fff6fc;
+  border: 2px solid #ffb3d9;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.match-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.court-badge {
+  background: #ff99cc;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.ref-badge {
+  background: #ffd6eb;
+  color: #ff3399;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.teams {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.team {
+  width: 40%;
+  text-align: center;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.team-a {
+  color: #ff3399;
+}
+
+.team-b {
+  color: #9933ff;
+}
+
+.amp {
+  color: #aaa;
+}
+
+.vs {
+  font-size: 14px;
+  font-weight: bold;
+  color: #999;
+}
+
+/* ===============================
+   プレイヤーステータス表
+=============================== */
+.status-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-th {
-  background: #ffe0f4;
-  padding: 8px;
-  font-size: 16px;
-}
-
-td {
-  background: #fff;
-  padding: 8px;
+.status-table th,
+.status-table td {
   border-bottom: 1px solid #ffd3ec;
+  padding: 8px;
+  text-align: center;
 }
 
-/* ========================================
-   フォーム系
-======================================== */
-select, input[type="text"] {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: 2px solid #ffb3d9;
-  background: #ffe6f3;
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-
-/* ========================================
-   リスト（名簿・参加者など）
-======================================== */
-.list-item {
-  background: #ffe6f3;
-  padding: 12px;
-  border-radius: 12px;
-  border: 2px solid #ffb3d9;
-  font-size: 20px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.list-item label {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.drag {
-  font-size: 22px;
+.status-table th {
+  background: #fff0f8;
   color: #ff66b3;
-  cursor: grab;
 }
 
-/* ========================================
-   試合カード
-======================================== */
-.match-card {
-  background: #fff6fc;
-  border: 1px solid #ffb3d9;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 10px;
-}
-
-/* ========================================
-   ボタン
-======================================== */
-button {
-  width: 100%;
-  padding: 15px;
-  font-size: 18px;
-  border-radius: 12px;
-  border: none;
+.name-cell {
   font-weight: bold;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: 0.2s;
 }
 
-button:hover {
-  opacity: 0.85;
-}
-
-/* カラーバリエーション */
-.btn-pink  { background: #ff99cc; color: white; }
-.btn-red   { background: #ff6675; color: white; }
-.btn-green { background: #8ee38e; color: white; }
-
-/* ========================================
-   次の試合ボタンを下寄せ
-======================================== */
-#nextRoundContainer {
-  margin-bottom: 40px;
-}
-
-/* スマホ対策（余白調整） */
-@media (max-width: 600px) {
-  body {
-    padding: 10px;
-  }
+/* ===============================
+   その他
+=============================== */
+.muted {
+  color: #aaa;
+  text-align: center;
 }
