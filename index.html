@@ -51,7 +51,7 @@ document.getElementById("setupBtn").onclick = () => {
     return;
   }
 
-  // activeNames → playersオブジェクト化（重要）
+  // players 初期化（Set込み）
   players = activeNames.map((name, idx) => ({
     name,
     idx,
@@ -65,9 +65,7 @@ document.getElementById("setupBtn").onclick = () => {
     lastRestRound: 0
   }));
 
-  console.log("🔥 初期players", players);
-
-  // 全員常に参加できる前提のスケジュール
+  // 全員参加できる前提スケジュール
   schedule = {};
   players.forEach(p => {
     schedule[p.name] = [{ from: 1, to: 999 }];
@@ -82,9 +80,7 @@ document.getElementById("setupBtn").onclick = () => {
 };
 
 function createNextRound() {
-  console.log("🔥 players直前", players);
-
-  // 念のため Set を再保証（localStorage地雷回避）
+  // Set 保険（localStorage事故回避）
   players = players.map(p => ({
     ...p,
     partners: p.partners instanceof Set ? p.partners : new Set(),
@@ -110,6 +106,10 @@ function createNextRound() {
   roundNumber++;
 }
 
+/* ======================================================
+   ★ここだけ強化ポイント★
+   試合の中身をちゃんと表示する版
+====================================================== */
 function renderRound(rounds, refs) {
   const box = document.createElement("div");
   box.className = "match-round";
