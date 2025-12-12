@@ -5,89 +5,54 @@
 <title>コジバド!! - 試合作成</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
-<meta name="theme-color" content="#ff66b3">
 </head>
 
 <body>
 
-<h1 class="app-title">コジバド!!</h1>
+<h1 class="title">コジバド!!</h1>
 
-<!-- ナビ -->
 <div class="top-nav">
   <a href="players.html">名簿管理</a>
-  <a href="attendance.html">参加者チェック</a>
+  <a href="attendance.html">参加チェック</a>
   <a class="active" href="index.html">試合作成</a>
 </div>
 
-<!-- 設定 -->
-<div class="panel">
+<div class="setting-block">
   <h2>試合設定</h2>
 
   <label>コート数</label>
   <select id="courtsSelect">
     <option value="1">1コート</option>
     <option value="2">2コート</option>
-    <option value="3">3コート</option>
-    <option value="4">4コート</option>
   </select>
 
-  <button id="startBtn">第1試合を作成</button>
+  <button id="setupBtn">第1試合を作成</button>
 </div>
 
-<!-- 試合履歴 -->
-<div id="rounds" class="panel">
+<div id="rounds" class="setting-block">
   <h2>試合履歴</h2>
-  <p id="noRoundMsg">まだ試合がありません。</p>
 </div>
 
-<!-- 次の試合ボタン（常に一番下） -->
-<div id="nextBtnArea"></div>
-
-<!-- ステータス -->
-<div id="playerSummary" class="panel" style="display:none;">
-  <h2>プレイヤーステータス</h2>
-  <div id="playerTable"></div>
-</div>
+<div id="nextRoundContainer"></div>
 
 <script src="common.js"></script>
 
 <script>
-/* ======================================================
-   index.html メイン処理（最終確定）
-====================================================== */
-
 let players = [];
 let roundNumber = 1;
 let schedule = {};
 
-window.onload = () => {
-  document.getElementById("startBtn").onclick = startFirstRound;
-  document.getElementById("nextBtnArea").innerHTML = "";
-};
+document.getElementById("setupBtn").onclick = () => {
+  const activeNames = getActivePlayers();
 
-/* -------------------------------
-   第1試合作成
--------------------------------- */
-function startFirstRound() {
-  const active = getActivePlayers();
-  if (active.length < 4) {
-    alert("参加者は4人以上必要です！");
+  if (activeNames.length < 4) {
+    alert("参加者は4人以上必要だよ💦");
     return;
   }
 
-  // ★ players 初期化（超重要）
-  players = active.map((name, i) => ({
-    name,
-    idx: i,
-    games: 0,
-    refs: 0,
-    rests: 0,
-    partners: new Set(),
-    opponents: new Set(),
-    lastRoundPlayed: 0
-  }));
+  // ★ここが超重要
+  players = normalizePlayers(activeNames);
 
-  // ★ 全員参加スケジュール
   schedule = {};
   players.forEach(p => {
     schedule[p.name] = [{ from: 1, to: 999 }];
@@ -95,16 +60,11 @@ function startFirstRound() {
   saveSchedule(schedule);
 
   roundNumber = 1;
-
   document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
-  document.getElementById("playerSummary").style.display = "block";
 
   createNextRound();
-}
+};
 
-/* -------------------------------
-   次の試合作成
--------------------------------- */
 function createNextRound() {
   const courtCount = Number(document.getElementById("courtsSelect").value);
 
@@ -113,83 +73,39 @@ function createNextRound() {
     roundNumber,
     courtCount,
     getAiWeights(),
-    schedule
+    getSchedule()
   );
 
   if (!result) {
-    alert("これ以上試合を作れません！");
+    alert("もう組めないかも🥺");
     return;
   }
 
-  renderRound(result.rounds, result.refs, result.benches);
-  renderPlayerTable();
+  renderRound(result.rounds, result.refs);
   roundNumber++;
 }
 
-/* -------------------------------
-   試合表示
--------------------------------- */
-function renderRound(rounds, refs, benches) {
-  const area = document.getElementById("rounds");
-  const noMsg = document.getElementById("noRoundMsg");
-  if (noMsg) noMsg.remove();
-
+function renderRound(rounds, refs) {
   const box = document.createElement("div");
   box.className = "match-round";
-
-  box.innerHTML = `<h3>第 ${roundNumber} 試合</h3>`;
+  box.innerHTML = `<h3>第${roundNumber}試合</h3>`;
 
   rounds.forEach((r, i) => {
-    const card = document.createElement("div");
-    card.className = "match-card";
-    card.innerHTML = `
-      <p><b>コート${i + 1}</b>（審判：${players[refs[i]].name}）</p>
-      <p>${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}</p>
-      <p>vs</p>
-      <p>${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}</p>
-    `;
-    box.appendChild(card);
-  });
-
-  if (benches.length > 0) {
-    box.innerHTML += `<p class="rest">休憩：${benches.map(i => players[i].name).join(" / ")}</p>`;
-  }
-
-  area.appendChild(box);
-
-  // 次の試合ボタンを一番下に
-  document.getElementById("nextBtnArea").innerHTML = `
-    <button onclick="createNextRound()">次の試合を作成</button>
-  `;
-}
-
-/* -------------------------------
-   ステータス表示
--------------------------------- */
-function renderPlayerTable() {
-  let html = `
-    <table>
-      <tr>
-        <th>名前</th>
-        <th>試合</th>
-        <th>審判</th>
-        <th>休憩</th>
-      </tr>
-  `;
-
-  players.forEach(p => {
-    html += `
-      <tr>
-        <td>${p.name}</td>
-        <td>${p.games}</td>
-        <td>${p.refs}</td>
-        <td>${p.rests}</td>
-      </tr>
+    box.innerHTML += `
+      <p>
+        コート${i + 1}：
+        ${players[r.teamA[0]].name} & ${players[r.teamA[1]].name}
+        vs
+        ${players[r.teamB[0]].name} & ${players[r.teamB[1]].name}
+        （審判：${players[refs[i]].name}）
+      </p>
     `;
   });
 
-  html += "</table>";
-  document.getElementById("playerTable").innerHTML = html;
+  document.getElementById("rounds").appendChild(box);
+
+  document.getElementById("nextRoundContainer").innerHTML =
+    `<button onclick="createNextRound()">次の試合を作成</button>`;
 }
 </script>
 
