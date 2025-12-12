@@ -180,12 +180,14 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
     if (!best) break;
 
-    const refIndex = chooseReferee(best, players, weights.refBias);
-    const play = best.filter(i => i !== refIndex);
-    if (play.length !== 4) continue;
+// 👇👇 ここ！！ 👇👇
+const refIndex = activeIdx.find(i => !best.includes(i));
+if (refIndex === undefined) continue;
 
-    const teamA = [play[0], play[1]];
-    const teamB = [play[2], play[3]];
+const play = best;
+
+const teamA = [play[0], play[1]];
+const teamB = [play[2], play[3]];
 
     rounds.push({ teamA, teamB });
     refs.push(refIndex);
@@ -213,3 +215,4 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
   return { rounds, refs };
 }
+
