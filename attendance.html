@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>コジバド!! - 名簿管理</title>
+  <title>コジバド!! - 参加チェック</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -12,52 +12,64 @@
 <h1 class="title">コジバド!!</h1>
 
 <div class="top-nav">
-  <a class="active" href="players.html">名簿管理</a>
-  <a href="attendance.html">参加チェック</a>
+  <a href="players.html">名簿管理</a>
+  <a class="active" href="attendance.html">参加チェック</a>
   <a href="index.html">試合作成</a>
 </div>
 
-<!-- 名簿パネル -->
 <div class="panel">
-  <h2>名前を追加</h2>
+  <h2>今日の参加者</h2>
+  <p class="muted">※ 今日来ている人にチェックしてね</p>
 
-  <label class="label">名前</label>
-  <input id="newPlayer" type="text" placeholder="例：コジコジ">
+  <ul id="activeList" style="list-style:none; padding:0; margin:0;"></ul>
 
-  <button class="btn primary" onclick="addPlayer()">追加</button>
-</div>
+  <div style="display:flex; gap:10px; margin-top:10px;">
+    <button class="btn secondary" onclick="checkAll()">全員ON</button>
+    <button class="btn danger" onclick="uncheckAll()">全員OFF</button>
+  </div>
 
-<!-- 名簿一覧 -->
-<div class="panel">
-  <h2>名簿一覧</h2>
-
-  <ul id="playerList" style="list-style:none; padding:0; margin:0;"></ul>
-
-  <p class="muted">※ 名簿は自動保存されます</p>
+  <button class="btn primary" style="margin-top:12px;" onclick="saveActivePlayers()">
+    参加者を保存 → 試合作成へ
+  </button>
 </div>
 
 <script src="common.js"></script>
 
 <script>
-/* ===============================
-   名簿管理ロジック
-=============================== */
+/* =========================
+   初期表示
+========================= */
+window.onload = () => {
+  loadAttendance();
+};
 
-function loadPlayers() {
-  const list = document.getElementById("playerList");
+/* =========================
+   名簿 → 参加チェック表示
+========================= */
+function loadAttendance() {
+  const list = document.getElementById("activeList");
   list.innerHTML = "";
 
-  const players = getAllPlayers();
+  const allPlayers = JSON.parse(localStorage.getItem("allPlayers") || "[]");
+  const active = JSON.parse(localStorage.getItem("activePlayers") || "[]");
 
-  players.forEach((name, index) => {
+  if (allPlayers.length === 0) {
+    list.innerHTML = `<li class="muted">名簿がまだだよ！先に登録してね</li>`;
+    return;
+  }
+
+  allPlayers.forEach(name => {
+    const checked = active.includes(name) ? "checked" : "";
+
     const li = document.createElement("li");
-    li.className = "match-card";
+    li.style.marginBottom = "10px";
 
     li.innerHTML = `
-      <div class="teams">
-        <div class="team team-a">${name}</div>
-        <button class="btn" style="width:auto; background:#ff6675;"
-          onclick="deletePlayer(${index})">削除</button>
+      <div class="match-card">
+        <label style="display:flex; align-items:center; gap:12px;">
+          <input type="checkbox" class="chk" data-name="${name}" ${checked}>
+          <div class="team team-a">${name}</div>
+        </label>
       </div>
     `;
 
@@ -65,41 +77,35 @@ function loadPlayers() {
   });
 }
 
-function addPlayer() {
-  const input = document.getElementById("newPlayer");
-  const name = input.value.trim();
+/* =========================
+   全員ON / OFF
+========================= */
+function checkAll() {
+  document.querySelectorAll(".chk").forEach(cb => cb.checked = true);
+}
 
-  if (!name) {
-    alert("名前を入力してね🥺");
+function uncheckAll() {
+  document.querySelectorAll(".chk").forEach(cb => cb.checked = false);
+}
+
+/* =========================
+   保存 → 試合作成
+========================= */
+function saveActivePlayers() {
+  const checked = [];
+  document.querySelectorAll(".chk").forEach(cb => {
+    if (cb.checked) checked.push(cb.dataset.name);
+  });
+
+  if (checked.length < 4) {
+    alert("4人以上選んでね💦");
     return;
   }
 
-  const players = getAllPlayers();
-
-  if (players.includes(name)) {
-    alert("その名前はもうあるよ💦");
-    return;
-  }
-
-  players.push(name);
-  localStorage.setItem("allPlayers", JSON.stringify(players));
-
-  input.value = "";
-  loadPlayers();
+  localStorage.setItem("activePlayers", JSON.stringify(checked));
+  alert("保存したよ！試合作成へ行こ💖");
+  location.href = "index.html";
 }
-
-function deletePlayer(index) {
-  if (!confirm("ほんとに削除する？")) return;
-
-  const players = getAllPlayers();
-  players.splice(index, 1);
-  localStorage.setItem("allPlayers", JSON.stringify(players));
-
-  loadPlayers();
-}
-
-/* 初期表示 */
-loadPlayers();
 </script>
 
 </body>
