@@ -51,23 +51,11 @@ document.getElementById("setupBtn").onclick = () => {
     return;
   }
 
-  // players 正規化（Setを必ず持たせる）
-  players = activeNames.map((name, idx) => ({
-    name,
-    idx,
-    games: 0,
-    refs: 0,
-    rests: 0,
-    partners: new Set(),
-    opponents: new Set(),
-    lastRoundPlayed: 0,
-    lastRefRound: 0,
-    lastRestRound: 0
-  }));
-
+  // players 正規化（Set必須）
+  players = normalizePlayers(activeNames);
   console.log("🔥 初期players", players);
 
-  // 全員常時参加できるスケジュール
+  // 全員常時参加できる前提
   schedule = {};
   players.forEach(p => {
     schedule[p.name] = [{ from: 1, to: 999 }];
@@ -84,13 +72,6 @@ document.getElementById("setupBtn").onclick = () => {
 function createNextRound() {
   console.log("🔥 players直前", players);
 
-  // 念のため Set を再保証（localStorage地雷回避）
-  players = players.map(p => ({
-    ...p,
-    partners: p.partners instanceof Set ? p.partners : new Set(),
-    opponents: p.opponents instanceof Set ? p.opponents : new Set()
-  }));
-
   const courtCount = Number(document.getElementById("courtsSelect").value);
 
   const result = generateRound(
@@ -101,7 +82,7 @@ function createNextRound() {
     getSchedule()
   );
 
-  if (!result) {
+  if (!result || result.rounds.length === 0) {
     alert("もう組めないかも🥺");
     return;
   }
@@ -110,35 +91,24 @@ function createNextRound() {
   roundNumber++;
 }
 
-/* ================================
-   🔥 ここが今回の強化ポイント
-   renderRound 完全安全版
-================================ */
 function renderRound(rounds, refs) {
   const box = document.createElement("div");
   box.className = "match-round";
   box.innerHTML = `<h3>第${roundNumber}試合</h3>`;
 
-  // ガード：試合が組めなかった場合
-  if (!rounds || rounds.length === 0) {
-    box.innerHTML += `<p>⚠️ このラウンドは試合を組めなかったよ</p>`;
-    document.getElementById("rounds").appendChild(box);
-    return;
-  }
-
   rounds.forEach((r, i) => {
-    const a1 = players[r.teamA[0]].name;
-    const a2 = players[r.teamA[1]].name;
-    const b1 = players[r.teamB[0]].name;
-    const b2 = players[r.teamB[1]].name;
+    const a = players[r.teamA[0]].name;
+    const b = players[r.teamA[1]].name;
+    const c = players[r.teamB[0]].name;
+    const d = players[r.teamB[1]].name;
     const ref = players[refs[i]].name;
 
     box.innerHTML += `
       <p>
         コート${i + 1}：
-        ${a1} & ${a2}
+        ${a} & ${b}
         vs
-        ${b1} & ${b2}
+        ${c} & ${d}
         （審判：${ref}）
       </p>
     `;
