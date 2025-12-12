@@ -178,7 +178,14 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
     if (!best) break;
 
-    const refIndex = chooseReferee(best, players, roundNumber, weights.refBias);
+    const playMembers = best;
+
+// 審判候補：今回使ってない人
+const refCandidates = activeIdx.filter(i => !playMembers.includes(i));
+if (refCandidates.length === 0) continue;
+
+const refIndex = chooseReferee(refCandidates, players, roundNumber, weights.refBias);
+
 
     const teamA = [best[0], best[1]];
     const teamB = [best[2], best[3]];
@@ -209,3 +216,4 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
   return { rounds, refs, benches: restPlayers };
 }
+
