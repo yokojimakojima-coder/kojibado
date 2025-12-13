@@ -40,7 +40,6 @@
   <div id="statusTableWrap"></div>
 </div>
 
-<!-- 共通ロジック -->
 <script src="common.js"></script>
 
 <script>
@@ -56,10 +55,8 @@ document.getElementById("setupBtn").onclick = () => {
     return;
   }
 
-  // common.js の normalizePlayers を使用
   players = normalizePlayers(activeNames);
 
-  // 全員参加できる前提のスケジュール
   schedule = {};
   players.forEach(p => {
     schedule[p.name] = [{ from: 1, to: 999 }];
@@ -75,7 +72,6 @@ document.getElementById("setupBtn").onclick = () => {
 };
 
 function createNextRound() {
-  // Set 再保証
   players = players.map(p => ({
     ...p,
     partners: p.partners instanceof Set ? p.partners : new Set(),
@@ -97,13 +93,16 @@ function createNextRound() {
     return;
   }
 
-  renderRound(result.rounds, result.refs, result.benches);
+  renderRound(result.rounds, result.refs);
   renderStatus(result.benches);
 
   roundNumber++;
 }
 
-function renderRound(rounds, refs, benches) {
+/* =========================
+   試合表示（シンプル版）
+========================= */
+function renderRound(rounds, refs) {
   const box = document.createElement("div");
   box.className = "match-round";
 
@@ -114,41 +113,20 @@ function renderRound(rounds, refs, benches) {
     const b0 = r.teamB[0], b1 = r.teamB[1];
     const ref = refs[i];
 
-    const main =
-      `${players[a0].name} & ${players[a1].name} ` +
-      `vs ` +
-      `${players[b0].name} & ${players[b1].name}`;
-
-    const refLine = `審判：${players[ref].name}（${players[ref].refs}回目）`;
-
-    const countLine =
-      `${players[a0].name}:${players[a0].games}回目 / ` +
-      `${players[a1].name}:${players[a1].games}回目 / ` +
-      `${players[b0].name}:${players[b0].games}回目 / ` +
-      `${players[b1].name}:${players[b1].games}回目`;
-
     box.innerHTML += `
       <div class="match-card">
         <div class="match-court">コート${i + 1}</div>
-        <div class="match-main">${main}</div>
-        <div class="match-sub">${refLine}</div>
-        <div class="match-sub">${countLine}</div>
+        <div class="match-main">
+          ${players[a0].name} & ${players[a1].name}
+          vs
+          ${players[b0].name} & ${players[b1].name}
+        </div>
+        <div class="match-sub">
+          審判：${players[ref].name}
+        </div>
       </div>
     `;
   });
-
-  if (benches && benches.length > 0) {
-    const benchText = benches
-      .map(i => `${players[i].name}（休憩${players[i].rests}回目）`)
-      .join(" / ");
-
-    box.innerHTML += `
-      <div class="bench-card">
-        <div class="bench-title">休憩</div>
-        <div class="bench-main">${benchText}</div>
-      </div>
-    `;
-  }
 
   document.getElementById("rounds").appendChild(box);
 
@@ -156,6 +134,9 @@ function renderRound(rounds, refs, benches) {
     `<button class="next-btn" onclick="createNextRound()">次の試合を作成</button>`;
 }
 
+/* =========================
+   プレイヤーステータス
+========================= */
 function renderStatus(benches) {
   const benchSet = new Set(benches || []);
 
