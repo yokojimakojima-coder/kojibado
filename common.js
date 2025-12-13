@@ -203,10 +203,22 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
     if (!best) break;
 
-    const refIndex = chooseReferee(best, players, roundNumber, weights.refBias);
+    // 試合に出る4人はそのまま
+const play = best;
 
-    // ★ 全員プレイ版（審判も含める）
-    const play = best;
+// 審判候補は「試合に出てない人」から
+const refereeCandidates = activeIdx.filter(i => !play.includes(i));
+
+// 審判が選べない場合はこの試合スキップ
+if (refereeCandidates.length === 0) continue;
+
+const refIndex = chooseReferee(
+  refereeCandidates,
+  players,
+  roundNumber,
+  weights.refBias
+);
+
 
     const teamA = [play[0], play[1]];
     const teamB = [play[2], play[3]];
@@ -237,4 +249,5 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
   return { rounds, refs };
 }
+
 
