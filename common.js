@@ -1,4 +1,4 @@
-console.log("🔥 common.js 最終完全版 読み込まれたよ！");
+console.log("🔥 common.js 完全版 読み込まれたよ！");
 
 /* ======================================================
    localStorage
@@ -21,7 +21,7 @@ function saveSchedule(s) {
 }
 
 /* ======================================================
-   players 正規化（Setを必ず持たせる）
+   players 正規化（Set 必須）
 ====================================================== */
 
 function normalizePlayers(names) {
@@ -57,7 +57,7 @@ function getAvailablePlayerIndexes(players, roundNumber, schedule) {
 }
 
 /* ======================================================
-   AI 重み（最強公平）
+   AI 重み（最終調整）
 ====================================================== */
 
 function getAiWeights() {
@@ -66,17 +66,14 @@ function getAiWeights() {
     opponentBias: 12,
     fatigueBias: 1.2,
     refBias: 2.0,
-    restBias: 2.0,
   };
 }
 
 /* ======================================================
-   履歴更新（超重要：undefined完全防止）
+   履歴更新
 ====================================================== */
 
 function updateHistory(players, teamA, teamB) {
-  if (!teamA || !teamB) return;
-
   const pairs = [
     [teamA[0], teamA[1]],
     [teamB[0], teamB[1]],
@@ -88,51 +85,65 @@ function updateHistory(players, teamA, teamB) {
   ];
 
   pairs.forEach(([x, y]) => {
-    if (!players[x] || !players[y]) return;
     players[x].partners.add(y);
     players[y].partners.add(x);
   });
 
   opponents.forEach(([x, y]) => {
-    if (!players[x] || !players[y]) return;
     players[x].opponents.add(y);
     players[y].opponents.add(x);
   });
 }
 
 /* ======================================================
-   評価関数
+   評価関数（偏り抑制・完成形）
 ====================================================== */
 
 function calcGroupScore(players, group, round, w) {
   let score = 0;
+
   const [a, b, c, d] = group;
 
+  // ペア被り
   if (players[a].partners.has(b)) score -= w.partnerBias;
   if (players[c].partners.has(d)) score -= w.partnerBias;
 
+  // 対戦被り
   if (players[a].opponents.has(c)) score -= w.opponentBias;
   if (players[a].opponents.has(d)) score -= w.opponentBias;
   if (players[b].opponents.has(c)) score -= w.opponentBias;
   if (players[b].opponents.has(d)) score -= w.opponentBias;
 
+  // 平均試合数との差（超重要）
+  const avgGames =
+    players.reduce((s, p) => s + p.games, 0) / players.length;
+
   group.forEach(i => {
-    score -= (round - players[i].lastRoundPlayed) * w.fatigueBias;
+    score -= Math.abs(players[i].games - avgGames) * 5;
   });
 
+  // 連続出場を強く嫌う
+  group.forEach(i => {
+    if (players[i].lastRoundPlayed === round - 1) {
+      score -= 20;
+    }
+  });
+
+  // 微ランダム
   return score + Math.random() * 0.01;
 }
 
 /* ======================================================
-   審判選択
+   審判選択（連続回避）
 ====================================================== */
 
-function chooseReferee(group, players, refBias) {
+function chooseReferee(group, players, round, refBias) {
   let best = group[0];
   let bestScore = Infinity;
 
   group.forEach(i => {
-    const score = players[i].refs * refBias;
+    let score = players[i].refs * refBias;
+    if (players[i].lastRefRound === round - 1) score += 10;
     if (score < bestScore) {
       bestScore = score;
       best = i;
@@ -143,7 +154,7 @@ function chooseReferee(group, players, refBias) {
 }
 
 /* ======================================================
-   ラウンド生成（完全安定版）
+   ラウンド生成（最終安定版）
 ====================================================== */
 
 function generateRound(players, roundNumber, courtCount, weights, schedule) {
@@ -165,7 +176,13 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
         for (let c = b + 1; c < activeIdx.length; c++) {
           for (let d = c + 1; d < activeIdx.length; d++) {
 
-            const group = [activeIdx[a], activeIdx[b], activeIdx[c], activeIdx[d]];
+            const group = [
+              activeIdx[a],
+              activeIdx[b],
+              activeIdx[c],
+              activeIdx[d]
+            ];
+
             if (group.some(x => used.has(x))) continue;
 
             const score = calcGroupScore(players, group, roundNumber, weights);
@@ -180,19 +197,17 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
     if (!best) break;
 
-// 👇👇 ここ！！ 👇👇
-const refIndex = activeIdx.find(i => !best.includes(i));
-if (refIndex === undefined) continue;
+    const refIndex = chooseReferee(best, players, roundNumber, weights.refBias);
 
-const play = best;
+    // ★ 全員プレイ版（審判も含める）
+    const play = best;
 
-const teamA = [play[0], play[1]];
-const teamB = [play[2], play[3]];
+    const teamA = [play[0], play[1]];
+    const teamB = [play[2], play[3]];
 
     rounds.push({ teamA, teamB });
     refs.push(refIndex);
 
-    used.add(refIndex);
     play.forEach(i => used.add(i));
 
     players[refIndex].refs++;
@@ -206,6 +221,7 @@ const teamB = [play[2], play[3]];
     updateHistory(players, teamA, teamB);
   }
 
+  // 休憩
   activeIdx
     .filter(i => !used.has(i))
     .forEach(i => {
@@ -215,4 +231,3 @@ const teamB = [play[2], play[3]];
 
   return { rounds, refs };
 }
-
