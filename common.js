@@ -138,12 +138,18 @@ function calcGroupScore(players, group, round, w) {
 ====================================================== */
 
 function chooseReferee(group, players, round, refBias) {
-  let best = group[0];
+  let best = null;
   let bestScore = Infinity;
 
   group.forEach(i => {
     let score = players[i].refs * refBias;
-    if (players[i].lastRefRound === round - 1) score += 10;
+
+    // 連続審判はかなり嫌う
+    if (players[i].lastRefRound === round - 1) score += 20;
+
+    // 同点はランダムで割る（超重要）
+    score += Math.random() * 0.5;
+
     if (score < bestScore) {
       bestScore = score;
       best = i;
@@ -231,3 +237,4 @@ function generateRound(players, roundNumber, courtCount, weights, schedule) {
 
   return { rounds, refs };
 }
+
