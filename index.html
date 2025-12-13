@@ -40,6 +40,7 @@
   <div id="statusTableWrap"></div>
 </div>
 
+<!-- 共通ロジック -->
 <script src="common.js"></script>
 
 <script>
@@ -55,10 +56,10 @@ document.getElementById("setupBtn").onclick = () => {
     return;
   }
 
-  // ✅ common.js の normalizePlayers を使う（これが正）
+  // common.js の normalizePlayers を使用
   players = normalizePlayers(activeNames);
 
-  // 全員参加できるスケジュール
+  // 全員参加できる前提のスケジュール
   schedule = {};
   players.forEach(p => {
     schedule[p.name] = [{ from: 1, to: 999 }];
@@ -69,12 +70,12 @@ document.getElementById("setupBtn").onclick = () => {
   document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
   document.getElementById("nextRoundContainer").innerHTML = "";
 
-  renderStatus(null); // 初期ステータス
+  renderStatus([]);
   createNextRound();
 };
 
 function createNextRound() {
-  // Set 再保証（念のため）
+  // Set 再保証
   players = players.map(p => ({
     ...p,
     partners: p.partners instanceof Set ? p.partners : new Set(),
@@ -106,19 +107,21 @@ function renderRound(rounds, refs, benches) {
   const box = document.createElement("div");
   box.className = "match-round";
 
-  // タイトル
   box.innerHTML = `<div class="round-title">第${roundNumber}試合</div>`;
 
-  // ✅ カードで表示（A & B vs C & D / 審判 / 何回目）
   rounds.forEach((r, i) => {
-    const a0 = r.teamA[0], a1 = r.teamA[1], b0 = r.teamB[0], b1 = r.teamB[1];
+    const a0 = r.teamA[0], a1 = r.teamA[1];
+    const b0 = r.teamB[0], b1 = r.teamB[1];
     const ref = refs[i];
 
-    const lineMain = `${players[a0].name} & ${players[a1].name}  vs  ${players[b0].name} & ${players[b1].name}`;
-    const lineRef  = `審判：${players[ref].name}（${players[ref].refs}回目）`;
+    const main =
+      `${players[a0].name} & ${players[a1].name} ` +
+      `vs ` +
+      `${players[b0].name} & ${players[b1].name}`;
 
-    // 「この試合、誰が何回目」＝ players の games がこの試合後に増えてるので、そのまま表示OK
-    const lineCount =
+    const refLine = `審判：${players[ref].name}（${players[ref].refs}回目）`;
+
+    const countLine =
       `${players[a0].name}:${players[a0].games}回目 / ` +
       `${players[a1].name}:${players[a1].games}回目 / ` +
       `${players[b0].name}:${players[b0].games}回目 / ` +
@@ -127,20 +130,22 @@ function renderRound(rounds, refs, benches) {
     box.innerHTML += `
       <div class="match-card">
         <div class="match-court">コート${i + 1}</div>
-        <div class="match-main">${lineMain}</div>
-        <div class="match-sub">${lineRef}</div>
-        <div class="match-sub">${lineCount}</div>
+        <div class="match-main">${main}</div>
+        <div class="match-sub">${refLine}</div>
+        <div class="match-sub">${countLine}</div>
       </div>
     `;
   });
 
-  // 休憩メンバーも表示
   if (benches && benches.length > 0) {
-    const benchNames = benches.map(i => `${players[i].name}（休憩${players[i].rests}回目）`).join(" / ");
+    const benchText = benches
+      .map(i => `${players[i].name}（休憩${players[i].rests}回目）`)
+      .join(" / ");
+
     box.innerHTML += `
       <div class="bench-card">
         <div class="bench-title">休憩</div>
-        <div class="bench-main">${benchNames}</div>
+        <div class="bench-main">${benchText}</div>
       </div>
     `;
   }
@@ -152,7 +157,6 @@ function renderRound(rounds, refs, benches) {
 }
 
 function renderStatus(benches) {
-  // benches は index配列。無いときは空
   const benchSet = new Set(benches || []);
 
   let html = `
@@ -166,8 +170,8 @@ function renderStatus(benches) {
       </div>
   `;
 
-  players.forEach((p, idx) => {
-    const now = benchSet.has(idx) ? "休憩" : "出場/審判";
+  players.forEach((p, i) => {
+    const now = benchSet.has(i) ? "休憩" : "出場/審判";
     html += `
       <div class="status-row">
         <div class="status-name">${p.name}</div>
