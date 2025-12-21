@@ -35,6 +35,12 @@
 
 <div id="nextRoundContainer"></div>
 
+<!-- ✅ 集計（プレイヤーステータス） -->
+<div id="playerSummary" class="setting-block" style="display:none;">
+  <h2>プレイヤーステータス（集計）</h2>
+  <div id="playerTable"></div>
+</div>
+
 <!-- 共通ロジック -->
 <script src="common.js"></script>
 
@@ -51,12 +57,10 @@ document.getElementById("setupBtn").onclick = () => {
     return;
   }
 
-  // ✅ここだけ：playersを正規化（最重要）
+  // ✅ここ：playersを正規化（Set持ち）
   players = normalizePlayers(activeNames);
 
-  console.log("🔥 初期players", players);
-
-  // 全員常に参加できる前提のスケジュール（途中参加/抜けを使わない日でもOK）
+  // 全員常に参加できる前提のスケジュール
   schedule = {};
   players.forEach(p => {
     schedule[p.name] = [{ from: 1, to: 999 }];
@@ -67,12 +71,14 @@ document.getElementById("setupBtn").onclick = () => {
   document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
   document.getElementById("nextRoundContainer").innerHTML = "";
 
+  // ✅集計パネルON
+  document.getElementById("playerSummary").style.display = "block";
+  renderPlayerTable();
+
   createNextRound();
 };
 
 function createNextRound() {
-  console.log("🔥 players直前", players);
-
   const courtCount = Number(document.getElementById("courtsSelect").value);
 
   const result = generateRound(
@@ -89,6 +95,8 @@ function createNextRound() {
   }
 
   renderRound(result.rounds, result.refs);
+  renderPlayerTable(); // ✅毎回更新
+
   roundNumber++;
 }
 
@@ -99,20 +107,58 @@ function renderRound(rounds, refs) {
 
   rounds.forEach((r, i) => {
     box.innerHTML += `
-      <p>
-        コート${i + 1}：
-        ${players[r.teamA[0]].name} & ${players[r.teamA[1]].name}
-        vs
-        ${players[r.teamB[0]].name} & ${players[r.teamB[1]].name}
-        （審判：${players[refs[i]].name}）
-      </p>
+      <div class="match-card">
+        <div class="match-line">
+          <b>コート${i + 1}</b>
+          <span class="ref">（審判：${players[refs[i]].name}）</span>
+        </div>
+        <div class="teams">
+          <div class="team">A：${players[r.teamA[0]].name} ＆ ${players[r.teamA[1]].name}</div>
+          <div class="team">B：${players[r.teamB[0]].name} ＆ ${players[r.teamB[1]].name}</div>
+        </div>
+      </div>
     `;
   });
 
   document.getElementById("rounds").appendChild(box);
 
+  // 最新試合の下にボタン
   document.getElementById("nextRoundContainer").innerHTML =
     `<button onclick="createNextRound()">次の試合を作成</button>`;
+}
+
+// ✅集計表示
+function renderPlayerTable() {
+  let html = `
+    <table class="status-table">
+      <thead>
+        <tr>
+          <th>名前</th>
+          <th>試合</th>
+          <th>審判</th>
+          <th>休憩</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  players.forEach(p => {
+    html += `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.games}</td>
+        <td>${p.refs}</td>
+        <td>${p.rests}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+      </tbody>
+    </table>
+  `;
+
+  document.getElementById("playerTable").innerHTML = html;
 }
 </script>
 
