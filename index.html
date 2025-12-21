@@ -35,11 +35,7 @@
 
 <div id="nextRoundContainer"></div>
 
-<div id="statusBlock" class="setting-block">
-  <h2>プレイヤーステータス</h2>
-  <div id="statusTableWrap"></div>
-</div>
-
+<!-- 共通ロジック -->
 <script src="common.js"></script>
 
 <script>
@@ -55,8 +51,12 @@ document.getElementById("setupBtn").onclick = () => {
     return;
   }
 
+  // ✅ここだけ：playersを正規化（最重要）
   players = normalizePlayers(activeNames);
 
+  console.log("🔥 初期players", players);
+
+  // 全員常に参加できる前提のスケジュール（途中参加/抜けを使わない日でもOK）
   schedule = {};
   players.forEach(p => {
     schedule[p.name] = [{ from: 1, to: 999 }];
@@ -67,16 +67,11 @@ document.getElementById("setupBtn").onclick = () => {
   document.getElementById("rounds").innerHTML = "<h2>試合履歴</h2>";
   document.getElementById("nextRoundContainer").innerHTML = "";
 
-  renderStatus([]);
   createNextRound();
 };
 
 function createNextRound() {
-  players = players.map(p => ({
-    ...p,
-    partners: p.partners instanceof Set ? p.partners : new Set(),
-    opponents: p.opponents instanceof Set ? p.opponents : new Set()
-  }));
+  console.log("🔥 players直前", players);
 
   const courtCount = Number(document.getElementById("courtsSelect").value);
 
@@ -88,84 +83,36 @@ function createNextRound() {
     getSchedule()
   );
 
-  if (!result || !result.rounds || result.rounds.length === 0) {
+  if (!result) {
     alert("もう組めないかも🥺");
     return;
   }
 
   renderRound(result.rounds, result.refs);
-  renderStatus(result.benches);
-
   roundNumber++;
 }
 
-/* =========================
-   試合表示（シンプル版）
-========================= */
 function renderRound(rounds, refs) {
   const box = document.createElement("div");
   box.className = "match-round";
-
-  box.innerHTML = `<div class="round-title">第${roundNumber}試合</div>`;
+  box.innerHTML = `<h3>第${roundNumber}試合</h3>`;
 
   rounds.forEach((r, i) => {
-    const a0 = r.teamA[0], a1 = r.teamA[1];
-    const b0 = r.teamB[0], b1 = r.teamB[1];
-    const ref = refs[i];
-
     box.innerHTML += `
-      <div class="match-card">
-        <div class="match-court">コート${i + 1}</div>
-        <div class="match-main">
-          ${players[a0].name} & ${players[a1].name}
-          vs
-          ${players[b0].name} & ${players[b1].name}
-        </div>
-        <div class="match-sub">
-          審判：${players[ref].name}
-        </div>
-      </div>
+      <p>
+        コート${i + 1}：
+        ${players[r.teamA[0]].name} & ${players[r.teamA[1]].name}
+        vs
+        ${players[r.teamB[0]].name} & ${players[r.teamB[1]].name}
+        （審判：${players[refs[i]].name}）
+      </p>
     `;
   });
 
   document.getElementById("rounds").appendChild(box);
 
   document.getElementById("nextRoundContainer").innerHTML =
-    `<button class="next-btn" onclick="createNextRound()">次の試合を作成</button>`;
-}
-
-/* =========================
-   プレイヤーステータス
-========================= */
-function renderStatus(benches) {
-  const benchSet = new Set(benches || []);
-
-  let html = `
-    <div class="status-wrap">
-      <div class="status-head">
-        <div>名前</div>
-        <div>試合</div>
-        <div>審判</div>
-        <div>休憩</div>
-        <div>今回</div>
-      </div>
-  `;
-
-  players.forEach((p, i) => {
-    const now = benchSet.has(i) ? "休憩" : "出場/審判";
-    html += `
-      <div class="status-row">
-        <div class="status-name">${p.name}</div>
-        <div>${p.games}</div>
-        <div>${p.refs}</div>
-        <div>${p.rests}</div>
-        <div>${now}</div>
-      </div>
-    `;
-  });
-
-  html += `</div>`;
-  document.getElementById("statusTableWrap").innerHTML = html;
+    `<button onclick="createNextRound()">次の試合を作成</button>`;
 }
 </script>
 
